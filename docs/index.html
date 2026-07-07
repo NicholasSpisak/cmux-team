@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cmux-team — Multi-Agent AI Coding Orchestration for Claude Code &amp; Codex</title>
+<meta name="description" content="cmux-team is a planner skill that designs the optimal multi-agent team for any coding task — role, model, thinking level, and count — and outputs a ready-to-run /cmux system prompt. Orchestrate Claude Code and Codex together.">
+<link rel="canonical" href="https://nicholasspisak.github.io/cmux-team/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="cmux-team — Multi-Agent AI Coding Orchestration">
+<meta property="og:description" content="Design the optimal Claude Code + Codex agent team and get a ready-to-run /cmux system prompt. It plans; you run.">
+<meta property="og:url" content="https://nicholasspisak.github.io/cmux-team/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="cmux-team — Multi-Agent AI Coding Orchestration">
+<meta name="twitter:description" content="Design the optimal Claude Code + Codex agent team and get a ready-to-run /cmux system prompt.">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"cmux-team","applicationCategory":"DeveloperApplication","operatingSystem":"macOS","description":"A planner skill that designs multi-agent AI coding teams for cmux and outputs a ready-to-run /cmux system prompt.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://nicholasspisak.github.io/cmux-team/"}
+</script>
+<style>
+  :root{
+    --paper:#E9ECEF;
+    --surface:#F6F7F9;
+    --surface-2:#FFFFFF;
+    --ink:#12151A;
+    --ink-soft:#454C55;
+    --ink-faint:#6B7280;
+    --line:rgba(18,21,26,.13);
+    --line-strong:rgba(18,21,26,.24);
+    --claude:#B65F2C;
+    --codex:#1B7E79;
+    --indigo:#3C5B87;
+    --agree:#3E8E43;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    --radius:10px;
+    --shadow:0 1px 2px rgba(18,21,26,.06), 0 8px 24px -12px rgba(18,21,26,.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#0E1116;
+      --surface:#151920;
+      --surface-2:#1A1F27;
+      --ink:#E9EBEF;
+      --ink-soft:#AEB6C2;
+      --ink-faint:#7C8592;
+      --line:rgba(233,235,239,.13);
+      --line-strong:rgba(233,235,239,.24);
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="light"]{
+    --paper:#E9ECEF; --surface:#F6F7F9; --surface-2:#FFFFFF;
+    --ink:#12151A; --ink-soft:#454C55; --ink-faint:#6B7280;
+    --line:rgba(18,21,26,.13); --line-strong:rgba(18,21,26,.24);
+    --shadow:0 1px 2px rgba(18,21,26,.06), 0 8px 24px -12px rgba(18,21,26,.18);
+  }
+  :root[data-theme="dark"]{
+    --paper:#0E1116; --surface:#151920; --surface-2:#1A1F27;
+    --ink:#E9EBEF; --ink-soft:#AEB6C2; --ink-faint:#7C8592;
+    --line:rgba(233,235,239,.13); --line-strong:rgba(233,235,239,.24);
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.6);
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  html{ background:var(--paper); }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  ::selection{ background:var(--indigo); color:#fff; }
+
+  a{ color:inherit; }
+  img,svg{ max-width:100%; display:block; }
+
+  :focus-visible{
+    outline:2px solid var(--indigo);
+    outline-offset:3px;
+    border-radius:4px;
+  }
+
+  .kicker{
+    font-family:var(--mono);
+    font-size:.72rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    display:inline-flex;
+    align-items:center;
+    gap:.5em;
+  }
+  .kicker::before{
+    content:"";
+    width:.55em; height:.55em;
+    background:currentColor;
+    display:inline-block;
+    clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);
+    opacity:.7;
+  }
+
+  .wrap{
+    max-width:1080px;
+    margin:0 auto;
+    padding:0 clamp(1.25rem,4vw,2.5rem);
+  }
+
+  /* ---------- header ---------- */
+  header.site{
+    position:sticky; top:0; z-index:40;
+    backdrop-filter:saturate(140%) blur(10px);
+    -webkit-backdrop-filter:saturate(140%) blur(10px);
+    background:color-mix(in srgb, var(--paper) 82%, transparent);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:.9rem clamp(1.25rem,4vw,2.5rem);
+    max-width:1080px; margin:0 auto;
+  }
+  .brand{
+    display:flex; align-items:center; gap:.55rem;
+    font-family:var(--mono); font-weight:600; font-size:.95rem;
+    letter-spacing:-.01em;
+    text-decoration:none;
+  }
+  .brand .mark{ width:20px; height:20px; }
+  .navlinks{ display:flex; align-items:center; gap:1.5rem; }
+  .navlinks a{
+    font-size:.86rem; text-decoration:none; color:var(--ink-soft);
+    transition:color .15s ease;
+  }
+  .navlinks a:hover{ color:var(--ink); }
+  .navlinks a.cta{
+    color:var(--ink); border:1px solid var(--line-strong);
+    padding:.4rem .8rem; border-radius:7px;
+    font-family:var(--mono); font-size:.78rem;
+  }
+  .navlinks a.cta:hover{ border-color:var(--claude); color:var(--claude); }
+  #theme-toggle{
+    background:none; border:1px solid var(--line-strong); border-radius:7px;
+    width:32px; height:32px; display:grid; place-items:center;
+    color:var(--ink-soft); cursor:pointer;
+  }
+  #theme-toggle:hover{ color:var(--ink); border-color:var(--line-strong); }
+  #theme-toggle svg{ width:15px; height:15px; }
+  .icon-sun{ display:block; }
+  .icon-moon{ display:none; }
+  @media (prefers-color-scheme: dark){
+    .icon-sun{ display:none; }
+    .icon-moon{ display:block; }
+  }
+  :root[data-theme="dark"] .icon-sun{ display:none; }
+  :root[data-theme="dark"] .icon-moon{ display:block; }
+  :root[data-theme="light"] .icon-sun{ display:block; }
+  :root[data-theme="light"] .icon-moon{ display:none; }
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative;
+    padding:clamp(3.5rem,8vw,6.5rem) 0 clamp(3rem,6vw,4.5rem);
+    overflow:hidden;
+    isolation:isolate;
+  }
+  .hero::before{
+    content:"";
+    position:absolute; inset:0; z-index:-2;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:56px 56px;
+    -webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 85%);
+    mask-image:radial-gradient(ellipse 70% 60% at 50% 0%, black 40%, transparent 85%);
+    opacity:.7;
+  }
+  .hero::after{
+    content:"";
+    position:absolute; z-index:-1;
+    top:-20%; left:50%; transform:translateX(-50%);
+    width:900px; height:600px;
+    background:
+      radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--claude) 22%, transparent), transparent 60%),
+      radial-gradient(circle at 70% 40%, color-mix(in srgb, var(--codex) 20%, transparent), transparent 60%),
+      radial-gradient(circle at 50% 70%, color-mix(in srgb, var(--indigo) 18%, transparent), transparent 60%);
+    filter:blur(10px);
+  }
+  .hero-grid{
+    display:grid;
+    grid-template-columns:1.15fr .85fr;
+    gap:clamp(2rem,5vw,3.5rem);
+    align-items:center;
+  }
+  h1{
+    font-size:clamp(2.1rem,4.4vw,3.4rem);
+    line-height:1.05;
+    letter-spacing:-.03em;
+    font-weight:800;
+    margin:.7rem 0 1.1rem;
+  }
+  h1 em{
+    font-style:normal;
+    background:linear-gradient(100deg, var(--claude), var(--indigo) 55%, var(--codex));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .lede{
+    font-size:clamp(1.02rem,1.6vw,1.18rem);
+    color:var(--ink-soft);
+    max-width:46ch;
+    margin:0 0 1.9rem;
+  }
+  .btn-row{ display:flex; flex-wrap:wrap; gap:.85rem; align-items:center; }
+  .btn{
+    display:inline-flex; align-items:center; gap:.5em;
+    font-family:var(--mono); font-size:.86rem; font-weight:600;
+    padding:.75rem 1.2rem; border-radius:8px;
+    text-decoration:none; border:1px solid transparent;
+    transition:transform .12s ease, box-shadow .12s ease, background-color .15s ease;
+  }
+  .btn:active{ transform:translateY(1px); }
+  .btn-primary{
+    background:var(--ink); color:var(--paper);
+    box-shadow:var(--shadow);
+  }
+  .btn-primary:hover{ box-shadow:0 10px 26px -10px color-mix(in srgb, var(--claude) 55%, transparent); }
+  .btn-ghost{
+    border-color:var(--line-strong); color:var(--ink);
+    background:transparent;
+  }
+  .btn-ghost:hover{ border-color:var(--indigo); color:var(--indigo); }
+
+  .hero-diagram{
+    aspect-ratio:1/.86;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:var(--surface);
+    box-shadow:var(--shadow);
+    padding:1.1rem;
+  }
+  .hero-diagram svg{ width:100%; height:100%; }
+
+  /* ---------- section shell ---------- */
+  section{ padding:clamp(3rem,6vw,4.75rem) 0; border-top:1px solid var(--line); }
+  .section-head{ max-width:62ch; margin-bottom:2.25rem; }
+  h2{
+    font-size:clamp(1.5rem,2.6vw,2rem);
+    letter-spacing:-.02em;
+    margin:.5rem 0 .8rem;
+    font-weight:750;
+  }
+  .section-head p{ color:var(--ink-soft); font-size:1.02rem; margin:0; }
+
+  code, .mono{ font-family:var(--mono); }
+
+  /* ---------- problem ---------- */
+  .decision-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+  }
+  .decision{
+    background:var(--surface);
+    padding:1.4rem 1.3rem;
+    position:relative;
+  }
+  .decision .num{
+    font-family:var(--mono); font-size:.75rem; color:var(--ink-faint);
+    display:block; margin-bottom:.6rem;
+  }
+  .decision h3{ margin:0 0 .4rem; font-size:1.02rem; }
+  .decision p{ margin:0; color:var(--ink-soft); font-size:.92rem; }
+
+  /* ---------- moves ---------- */
+  .moves{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:.9rem;
+    margin-bottom:2.75rem;
+  }
+  .move{
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:1rem .95rem;
+    background:var(--surface);
+  }
+  .move .n{
+    font-family:var(--mono); font-size:1.3rem; font-weight:700;
+    color:var(--indigo); display:block; margin-bottom:.5rem;
+  }
+  .move h4{ font-size:.86rem; margin:0 0 .3rem; letter-spacing:-.01em; }
+  .move p{ font-size:.78rem; color:var(--ink-faint); margin:0; line-height:1.4; }
+
+  .halt-banner{
+    display:flex; align-items:center; gap:.9rem;
+    border:1px dashed var(--line-strong);
+    border-radius:var(--radius);
+    padding:1rem 1.2rem;
+    margin:1.75rem 0 2.5rem;
+    background:color-mix(in srgb, var(--agree) 8%, var(--surface));
+  }
+  .halt-banner .tag{
+    font-family:var(--mono); font-weight:800; font-size:.72rem;
+    letter-spacing:.08em;
+    color:var(--agree);
+    border:1px solid color-mix(in srgb, var(--agree) 55%, transparent);
+    background:color-mix(in srgb, var(--agree) 14%, transparent);
+    padding:.3rem .55rem; border-radius:5px;
+    white-space:nowrap;
+  }
+  .halt-banner p{ margin:0; color:var(--ink-soft); font-size:.92rem; }
+
+  .scroll-x{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:var(--surface);
+  }
+  table.roster{
+    width:100%;
+    border-collapse:collapse;
+    min-width:640px;
+    font-size:.88rem;
+  }
+  table.roster caption{
+    text-align:left;
+    font-family:var(--mono);
+    font-size:.72rem;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    padding:.9rem 1.1rem 0;
+  }
+  table.roster th{
+    text-align:left;
+    font-family:var(--mono);
+    font-size:.72rem;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    font-weight:600;
+    padding:.85rem 1.1rem .6rem;
+    border-bottom:1px solid var(--line);
+  }
+  table.roster td{
+    padding:.85rem 1.1rem;
+    border-bottom:1px solid var(--line);
+    color:var(--ink-soft);
+    vertical-align:top;
+  }
+  table.roster tr:last-child td{ border-bottom:none; }
+  table.roster td code{ font-size:.85em; color:var(--ink); }
+  .role-chip{
+    display:inline-flex; align-items:center; gap:.45em;
+    font-family:var(--mono); font-weight:700; font-size:.82em;
+    padding:.2em .55em; border-radius:5px;
+    white-space:nowrap;
+  }
+  .role-chip::before{
+    content:""; width:.5em; height:.5em; border-radius:50%;
+    background:currentColor;
+  }
+  .role-lead{ color:var(--indigo); background:color-mix(in srgb, var(--indigo) 13%, transparent); border:1px solid color-mix(in srgb, var(--indigo) 40%, transparent); }
+  .role-a{ color:var(--claude); background:color-mix(in srgb, var(--claude) 13%, transparent); border:1px solid color-mix(in srgb, var(--claude) 40%, transparent); }
+  .role-b{ color:var(--codex); background:color-mix(in srgb, var(--codex) 13%, transparent); border:1px solid color-mix(in srgb, var(--codex) 40%, transparent); }
+  .role-rev{ color:var(--agree); background:color-mix(in srgb, var(--agree) 13%, transparent); border:1px solid color-mix(in srgb, var(--agree) 40%, transparent); }
+
+  .prompt-block{
+    margin-top:1.4rem;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:var(--surface);
+    overflow:hidden;
+  }
+  .prompt-block .bar{
+    display:flex; align-items:center; gap:.5rem;
+    padding:.6rem .9rem;
+    border-bottom:1px solid var(--line);
+    font-family:var(--mono); font-size:.72rem; color:var(--ink-faint);
+  }
+  .prompt-block .bar .dot{ width:8px; height:8px; border-radius:50%; background:var(--line-strong); }
+  .prompt-block pre{
+    margin:0; padding:1.25rem 1.4rem;
+    overflow-x:auto;
+    font-size:.82rem; line-height:1.65;
+    color:var(--ink-soft);
+  }
+  .prompt-block pre code{ color:inherit; }
+  .prompt-block .hl{ color:var(--ink); font-weight:600; }
+
+  /* ---------- install ---------- */
+  .install-grid{
+    display:grid;
+    grid-template-columns:1.1fr .9fr;
+    gap:2rem;
+    align-items:start;
+  }
+  .cmd{
+    display:flex; align-items:center; gap:.75rem;
+    background:var(--ink); color:var(--paper);
+    border-radius:var(--radius);
+    padding:1rem 1.2rem;
+    font-family:var(--mono); font-size:.88rem;
+    box-shadow:var(--shadow);
+    overflow-x:auto;
+  }
+  .cmd .p{ color:var(--codex); user-select:none; }
+  .prereqs{
+    border:1px solid var(--line); border-radius:var(--radius);
+    background:var(--surface); padding:1.3rem 1.4rem;
+  }
+  .prereqs h3{ margin:0 0 .9rem; font-size:.92rem; }
+  .prereqs ul{ margin:0; padding:0; list-style:none; }
+  .prereqs li{
+    display:flex; gap:.6rem; align-items:flex-start;
+    font-size:.88rem; color:var(--ink-soft); margin-bottom:.75rem;
+  }
+  .prereqs li:last-child{ margin-bottom:0; }
+  .prereqs li::before{
+    content:"›"; font-family:var(--mono); color:var(--indigo); font-weight:700;
+  }
+  .usage-line{ margin-top:1.4rem; }
+  .usage-line .cmd{ background:var(--surface-2); color:var(--ink); border:1px solid var(--line); box-shadow:none; }
+  .usage-line .cmd .p{ color:var(--claude); }
+
+  /* ---------- who it's for ---------- */
+  .who-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:1.1rem;
+  }
+  .who-card{
+    border:1px solid var(--line); border-radius:var(--radius);
+    background:var(--surface); padding:1.5rem 1.4rem;
+  }
+  .who-card .kicker{ margin-bottom:.7rem; }
+  .who-card h3{ margin:0 0 .5rem; font-size:1.08rem; }
+  .who-card p{ margin:0; color:var(--ink-soft); font-size:.92rem; }
+
+  /* ---------- AOA CTA ---------- */
+  .aoa{
+    border-radius:16px;
+    padding:clamp(2rem,5vw,3rem);
+    background:
+      radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--claude) 20%, transparent), transparent 55%),
+      radial-gradient(120% 140% at 100% 100%, color-mix(in srgb, var(--indigo) 22%, transparent), transparent 55%),
+      var(--surface);
+    border:1px solid var(--line-strong);
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1.75rem;
+  }
+  .aoa-copy{ max-width:46ch; }
+  .aoa-copy .kicker{ margin-bottom:.6rem; }
+  .aoa h2{ margin:.2rem 0 .6rem; }
+  .aoa p{ margin:0; color:var(--ink-soft); }
+  .btn-aoa{
+    background:var(--claude); color:#fff;
+    box-shadow:0 10px 26px -10px color-mix(in srgb, var(--claude) 60%, transparent);
+    font-size:.92rem; padding:.9rem 1.5rem;
+    flex-shrink:0;
+  }
+  .btn-aoa:hover{ background:color-mix(in srgb, var(--claude) 88%, black); }
+
+  /* ---------- footer ---------- */
+  footer.site{
+    border-top:1px solid var(--line);
+    padding:2.25rem 0 3rem;
+  }
+  .foot-row{
+    display:flex; flex-wrap:wrap; gap:1.25rem 2rem;
+    align-items:center; justify-content:space-between;
+  }
+  .foot-links{ display:flex; flex-wrap:wrap; gap:1.5rem; }
+  .foot-links a{ font-size:.86rem; color:var(--ink-soft); text-decoration:none; }
+  .foot-links a:hover{ color:var(--ink); }
+  .foot-note{ font-size:.8rem; color:var(--ink-faint); font-family:var(--mono); }
+
+  @media (max-width:820px){
+    .hero-grid{ grid-template-columns:1fr; }
+    .hero-diagram{ order:-1; max-width:420px; margin:0 auto; }
+    .moves{ grid-template-columns:repeat(2,1fr); }
+    .install-grid{ grid-template-columns:1fr; }
+    .navlinks{ gap:.9rem; }
+    .navlinks a:not(.cta):not(#theme-toggle){ display:none; }
+  }
+  @media (max-width:520px){
+    .moves{ grid-template-columns:1fr 1fr; }
+    .decision-grid{ grid-template-columns:1fr; }
+  }
+
+  @media (prefers-reduced-motion:no-preference){
+    .reveal{ animation:rise .55s ease both; }
+    .reveal:nth-child(2){ animation-delay:.08s; }
+    .reveal:nth-child(3){ animation-delay:.16s; }
+    @keyframes rise{ from{ opacity:0; transform:translateY(10px);} to{ opacity:1; transform:none;} }
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <nav class="nav">
+    <a class="brand" href="#top">
+      <svg class="mark" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="12" cy="5" r="2.6" fill="var(--indigo)"/>
+        <circle cx="5" cy="17" r="2.6" fill="var(--claude)"/>
+        <circle cx="19" cy="17" r="2.6" fill="var(--codex)"/>
+        <path d="M12 7.6L6.3 15M12 7.6L17.7 15M7.6 17H16.4" stroke="var(--ink-faint)" stroke-width="1.1"/>
+      </svg>
+      cmux-team
+    </a>
+    <div class="navlinks">
+      <a href="#how-it-works">How it works</a>
+      <a href="#install">Install</a>
+      <a href="#academy">Academy</a>
+      <a class="cta" href="https://github.com/NicholasSpisak/cmux-team">GitHub ↗</a>
+      <button id="theme-toggle" type="button" aria-label="Toggle color theme" onclick="cmuxToggleTheme()">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M21.5 12h-2.4M4.9 12H2.5M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7M18.4 18.4l-1.7-1.7M7.3 7.3 5.6 5.6"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 13.2A8.6 8.6 0 1 1 10.8 3a7 7 0 0 0 10.2 10.2Z"/></svg>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<main id="top">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" style="border-top:none;">
+    <div class="wrap hero-grid">
+      <div class="reveal">
+        <span class="kicker">Planner skill for cmux</span>
+        <h1>Multi-agent AI coding orchestration, <em>planned before it runs</em></h1>
+        <p class="lede">
+          cmux-team designs the optimal agent team for a coding objective — role,
+          model, thinking level, and count — then hands you a ready-to-run
+          <code>/cmux</code> system prompt. It plans; you run. Built to orchestrate
+          Claude Code and Codex together, on purpose.
+        </p>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="#install">Install →</a>
+          <a class="btn btn-ghost" href="#how-it-works">How it works</a>
+        </div>
+      </div>
+      <div class="hero-diagram reveal" aria-hidden="true">
+        <svg viewBox="0 0 320 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="var(--line-strong)" stroke-width="1.2">
+            <line x1="160" y1="46" x2="70" y2="150"/>
+            <line x1="160" y1="46" x2="250" y2="150"/>
+            <line x1="70" y1="150" x2="160" y2="230"/>
+            <line x1="250" y1="150" x2="160" y2="230"/>
+            <line x1="70" y1="150" x2="250" y2="150"/>
+          </g>
+          <g font-family="ui-monospace,SF Mono,JetBrains Mono,Menlo,monospace" font-size="9" fill="var(--ink-faint)" text-anchor="middle">
+            <text x="160" y="20">LEAD</text>
+            <text x="70" y="182">IMPL-A</text>
+            <text x="250" y="182">IMPL-B</text>
+            <text x="160" y="262">REVIEWER</text>
+          </g>
+          <circle cx="160" cy="46" r="17" fill="var(--surface-2)" stroke="var(--indigo)" stroke-width="2"/>
+          <circle cx="70" cy="150" r="17" fill="var(--surface-2)" stroke="var(--claude)" stroke-width="2"/>
+          <circle cx="250" cy="150" r="17" fill="var(--surface-2)" stroke="var(--codex)" stroke-width="2"/>
+          <circle cx="160" cy="230" r="17" fill="var(--surface-2)" stroke="var(--agree)" stroke-width="2"/>
+          <circle cx="160" cy="46" r="4" fill="var(--indigo)"/>
+          <circle cx="70" cy="150" r="4" fill="var(--claude)"/>
+          <circle cx="250" cy="150" r="4" fill="var(--codex)"/>
+          <circle cx="160" cy="230" r="4" fill="var(--agree)"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ THE PROBLEM ============ -->
+  <section id="problem">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="kicker">The problem</span>
+        <h2>"Spin up some agents" hides four decisions</h2>
+        <p>
+          Every multi-agent coding run quietly requires you to answer questions
+          most people skip past. Skip them and you either overpay in tokens or
+          under-power the task.
+        </p>
+      </div>
+      <div class="decision-grid">
+        <div class="decision">
+          <span class="num">01</span>
+          <h3>Which model, per role</h3>
+          <p>A lead judging two builds needs different strength than an implementer grinding through boilerplate.</p>
+        </div>
+        <div class="decision">
+          <span class="num">02</span>
+          <h3>How hard each should think</h3>
+          <p>Thinking level is a dial, not a default — mechanical edits and open-ended synthesis don't deserve the same setting.</p>
+        </div>
+        <div class="decision">
+          <span class="num">03</span>
+          <h3>How many agents</h3>
+          <p>Every extra agent is real tokens. Right-sizing beats reflexively parallelizing.</p>
+        </div>
+        <div class="decision">
+          <span class="num">04</span>
+          <h3>Whether you need a team at all</h3>
+          <p>Trivial tasks deserve a team of one. Over-staffing is its own failure mode.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS ============ -->
+  <section id="how-it-works">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="kicker">How it works</span>
+        <h2>Five moves from objective to roster</h2>
+        <p>
+          Given a coding objective, cmux-team reasons through staffing the same
+          way a technical lead would — then writes the spec down.
+        </p>
+      </div>
+
+      <div class="moves">
+        <div class="move"><span class="n">01</span><h4>Analyze</h4><p>How open-ended is it? How many distinct viable approaches exist? What's parallelizable?</p></div>
+        <div class="move"><span class="n">02</span><h4>Pattern</h4><p>Pick a topology: diverse-build + judge, decompose + assemble, or solo.</p></div>
+        <div class="move"><span class="n">03</span><h4>Staff</h4><p>Assign model, thinking level, and headcount per role. Right-size every seat.</p></div>
+        <div class="move"><span class="n">04</span><h4>Write</h4><p>Emit OBJECTIVE, ROSTER, PROTOCOL, RUBRIC, and CONSTRAINTS as one block.</p></div>
+        <div class="move"><span class="n">05</span><h4>Present &amp; halt</h4><p>Output the roster and the <code>/cmux</code> prompt. Nothing runs yet.</p></div>
+      </div>
+
+      <div class="halt-banner">
+        <span class="tag">HALTS HERE</span>
+        <p>cmux-team never spawns agents or edits code. It stops the moment the plan is written — you review it, tweak the roster, and launch it yourself.</p>
+      </div>
+
+      <p class="kicker" style="margin-bottom:.9rem;">Worked example — <code>/cmux-team "add rate limiting to the POST /orders endpoint"</code></p>
+
+      <div class="scroll-x">
+        <table class="roster">
+          <caption>Deliverable — roster</caption>
+          <thead>
+            <tr><th>Role</th><th>Model</th><th>Thinking</th><th>×</th><th>Job</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="role-chip role-lead">Lead</span></td>
+              <td><code>claude-opus-4-8</code></td>
+              <td>high</td>
+              <td>1</td>
+              <td>Decompose, judge on rubric, synthesize, verify</td>
+            </tr>
+            <tr>
+              <td><span class="role-chip role-a">Implementer A</span></td>
+              <td><code>claude-opus-4-8</code></td>
+              <td>high</td>
+              <td>1</td>
+              <td>Build in worktree ../ord-a; blind to B</td>
+            </tr>
+            <tr>
+              <td><span class="role-chip role-b">Implementer B</span></td>
+              <td><code>codex · gpt-5-codex</code></td>
+              <td>high</td>
+              <td>1</td>
+              <td>Build in worktree ../ord-b; diverse 2nd approach</td>
+            </tr>
+            <tr>
+              <td><span class="role-chip role-rev">Reviewer</span></td>
+              <td><code>claude-sonnet-5</code></td>
+              <td>medium</td>
+              <td>1</td>
+              <td>Edge-case tests; verify the synthesis</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="prompt-block">
+        <div class="bar"><span class="dot"></span>Deliverable — launch prompt</div>
+        <pre><code>/cmux "OBJECTIVE: Add rate limiting to POST /orders.
+
+ROSTER (4):
+• LEAD — claude-opus-4-8 · thinking=high. Decompose, delegate, judge builds on
+  the rubric, synthesize best-of-both, verify.
+• IMPLEMENTER-A — claude-opus-4-8 · thinking=high. Worktree ../ord-a, branch
+  ord/a. Blind to B.
+• IMPLEMENTER-B — codex gpt-5-codex · reasoning=high. Worktree ../ord-b, branch
+  ord/b. Blind to A.
+• REVIEWER — claude-sonnet-5 · thinking=medium. Edge-case tests (burst, clock
+  skew, distributed); verify the synthesis.
+
+PROTOCOL: A,B build isolated → LEAD scores blind to provenance → synthesize →
+  REVIEWER verifies → tests pass → present to human.
+RUBRIC: correctness · edge cases · readability · coverage · blast radius · idiomatic fit.
+CONSTRAINTS: worktree per implementer; --focus false; no merge without human approval."</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ INSTALL ============ -->
+  <section id="install">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="kicker">Install</span>
+        <h2>One command, then one line to plan</h2>
+        <p>cmux-team installs as a skill into your coding agent's skills directory via the Vercel skills ecosystem.</p>
+      </div>
+
+      <div class="install-grid">
+        <div>
+          <div class="cmd"><span class="p">$</span> npx skills add NicholasSpisak/cmux-team</div>
+          <div class="usage-line">
+            <div class="cmd"><span class="p">›</span> /cmux-team "add rate limiting to the POST /orders endpoint"</div>
+          </div>
+        </div>
+        <div class="prereqs">
+          <h3>Prerequisites</h3>
+          <ul>
+            <li>The <a href="https://cmux.com/docs/getting-started">cmux</a> app + CLI, with the official <code>/cmux</code> skills installed (<code>cmux docs</code> should work).</li>
+            <li>A coding agent — Claude Code, Codex, or similar.</li>
+            <li>Node/npx available on <code>PATH</code> for the installer.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WHO IT'S FOR ============ -->
+  <section id="who">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="kicker">Who it's for</span>
+        <h2>People staffing agents on purpose</h2>
+      </div>
+      <div class="who-grid">
+        <div class="who-card">
+          <span class="kicker">Individual devs</span>
+          <h3>Running Claude Code and Codex together</h3>
+          <p>You already reach for multiple agents on non-trivial work. cmux-team turns "spin some up" into a reviewable spec before any tokens burn.</p>
+        </div>
+        <div class="who-card">
+          <span class="kicker">Teams</span>
+          <h3>Standardizing agent workflows</h3>
+          <p>Bake a consistent roster, rubric, and protocol into how your team stages diverse-build-and-judge or decompose-and-assemble work.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ AOA CTA ============ -->
+  <section id="academy">
+    <div class="wrap">
+      <div class="aoa">
+        <div class="aoa-copy">
+          <span class="kicker">AI Operator Academy</span>
+          <h2>Learn to operate AI agent teams</h2>
+          <p>Planning the roster is one skill. Running a fleet of agents well, day to day, is another — that's what AOA teaches.</p>
+        </div>
+        <a class="btn btn-aoa" href="https://www.skool.com/aioperatoracademy/about" target="_blank" rel="noopener">Join AI Operator Academy →</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site">
+  <div class="wrap foot-row">
+    <div class="foot-links">
+      <a href="https://github.com/NicholasSpisak/cmux-team">Repo on GitHub</a>
+      <a href="https://cmux.com">cmux</a>
+      <a href="https://github.com/NicholasSpisak/cmux-team/blob/main/LICENSE">MIT License</a>
+    </div>
+    <span class="foot-note">© Nicholas Spisak</span>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    try{
+      var saved = localStorage.getItem('cmux-theme');
+      if(saved === 'light' || saved === 'dark'){
+        document.documentElement.setAttribute('data-theme', saved);
+      }
+    }catch(e){}
+  })();
+  function cmuxToggleTheme(){
+    var root = document.documentElement;
+    var current = root.getAttribute('data-theme');
+    if(!current){
+      current = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    var next = current === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try{ localStorage.setItem('cmux-theme', next); }catch(e){}
+  }
+</script>
+</body>
+</html>
