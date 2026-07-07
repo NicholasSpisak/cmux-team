@@ -216,5 +216,5 @@ Environment:
 ## `cmux capabilities`
 ```
 Error: Failed to write to socket (Broken pipe, errno 32)
-(cmux capabilities unavailable)
+(cmux capabilities unavailable — run this script from inside a cmux terminal surface so the socket accepts the caller)
 ```

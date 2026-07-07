@@ -50,17 +50,28 @@ cmux update:
 ./scripts/sync-cmux-refs.sh
 ```
 
-## Local CI (no GitHub Actions)
+Run it **from inside a cmux terminal surface**. The `cmux --help` and `cmux docs`
+captures work anywhere, but `cmux capabilities` is socket-backed and only answers
+a trusted caller — outside a cmux surface it records a graceful "unavailable"
+note instead. The script auto-discovers the running app's socket from
+`/tmp/cmux-last-socket-path` when it can.
 
-All checks run locally:
+## Contributing
+
+No CI runs in the cloud — **there are no GitHub Actions**. Everything is checked
+locally before you push:
 
 ```bash
-./scripts/check.sh
+./scripts/check.sh        # must exit 0 before committing
 ```
 
-It validates the skill frontmatter, absence of placeholders, referenced files,
-snapshot provenance + staleness, docs SEO/self-containment, and that no
-`.github/workflows/` exist.
+`check.sh` validates the skill frontmatter, absence of placeholders, that every
+referenced file exists, snapshot provenance + staleness (snapshot `cmux version`
+must match your installed one), docs SEO + self-containment, and that no
+`.github/workflows/` directory exists. If the staleness check fails, run
+`./scripts/sync-cmux-refs.sh` (from a cmux surface) and commit the refreshed
+snapshots. Keep model IDs in `skills/cmux-team/references/staffing-heuristics.md`
+— that is their single source of truth.
 
 ## License
 
