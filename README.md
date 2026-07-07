@@ -38,11 +38,11 @@ This installs the skill into each detected agent's skills directory (via the
 ```
 
 You get a roster + a `/cmux` system prompt. Review it, adjust models/counts, then
-run it yourself. See [`assets/example-plan.md`](assets/example-plan.md).
+run it yourself. See [`skills/cmux-team/assets/example-plan.md`](skills/cmux-team/assets/example-plan.md).
 
 ## How it stays current
 
-cmux specifics are vendored in [`references/`](references/) as snapshots with a
+cmux specifics are vendored in [`skills/cmux-team/references/`](skills/cmux-team/references/) as snapshots with a
 provenance header (source + captured `cmux version` + date). Refresh them after a
 cmux update:
 

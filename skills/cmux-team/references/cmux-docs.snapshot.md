@@ -145,6 +145,7 @@ cmux-release
 cmux-settings
 cmux-shared-behavior
 cmux-socket-policy
+cmux-team
 cmux-testing
 cmux-workspace
 ```

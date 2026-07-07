@@ -3,33 +3,34 @@
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
+SKILL_DIR="skills/cmux-team"
 fail=0
 err(){ printf 'FAIL: %s\n' "$*" >&2; fail=1; }
 ok(){ printf 'ok:   %s\n' "$*"; }
 
 # 1. SKILL.md frontmatter
-if [ -f SKILL.md ] && head -1 SKILL.md | grep -q '^---$'; then
-  fm="$(awk 'NR==1{next} /^---$/{exit} {print}' SKILL.md)"
+if [ -f "$SKILL_DIR/SKILL.md" ] && head -1 "$SKILL_DIR/SKILL.md" | grep -q '^---$'; then
+  fm="$(awk 'NR==1{next} /^---$/{exit} {print}' "$SKILL_DIR/SKILL.md")"
   printf '%s\n' "$fm" | grep -q '^name:[[:space:]]*cmux-team[[:space:]]*$' || err "SKILL.md frontmatter: name must be cmux-team"
   printf '%s\n' "$fm" | grep -Eq '^description:[[:space:]]*.{40,}' || err "SKILL.md frontmatter: description missing or too short"
   ok "SKILL.md frontmatter"
-else err "SKILL.md missing or has no YAML frontmatter"; fi
+else err "$SKILL_DIR/SKILL.md missing or has no YAML frontmatter"; fi
 
 # 2. No placeholders
 if grep -RInE 'TBD|FIXME|lorem ipsum|\bXXX\b|implement later' \
-     SKILL.md README.md references docs/index.html 2>/dev/null; then
+     "$SKILL_DIR/SKILL.md" README.md "$SKILL_DIR/references" docs/index.html 2>/dev/null; then
   err "placeholder tokens found (see above)"
 else ok "no placeholders"; fi
 
 # 3. Referenced files exist
-for f in references/staffing-heuristics.md references/cmux-verbs.snapshot.md \
-         references/cmux-docs.snapshot.md assets/example-plan.md; do
+for f in "$SKILL_DIR/references/staffing-heuristics.md" "$SKILL_DIR/references/cmux-verbs.snapshot.md" \
+         "$SKILL_DIR/references/cmux-docs.snapshot.md" "$SKILL_DIR/assets/example-plan.md"; do
   [ -f "$f" ] && ok "exists: $f" || err "missing referenced file: $f"
 done
 
 # 4. Snapshot provenance + staleness
 CUR_VER="$(cmux version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)"
-for s in references/cmux-verbs.snapshot.md references/cmux-docs.snapshot.md; do
+for s in "$SKILL_DIR/references/cmux-verbs.snapshot.md" "$SKILL_DIR/references/cmux-docs.snapshot.md"; do
   [ -f "$s" ] || continue
   grep -q 'Captured-From:' "$s" || err "$s: missing Captured-From provenance"
   grep -q 'Captured-cmux-version:' "$s" || err "$s: missing Captured-cmux-version provenance"

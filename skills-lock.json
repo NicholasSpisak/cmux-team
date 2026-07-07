@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "cmux-team": {
+      "source": "NicholasSpisak/cmux-team",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "8160dc8451ab549f1a56a609febe2c467e188fbe4ebde862ed1d95419599424a"
+    }
+  }
+}

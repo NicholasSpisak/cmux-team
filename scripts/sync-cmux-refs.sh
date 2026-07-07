@@ -3,7 +3,7 @@
 # and the installed official /cmux skills. Run locally when cmux updates.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-REF="$ROOT/references"
+REF="$ROOT/skills/cmux-team/references"
 mkdir -p "$REF"
 VER="$(cmux version 2>/dev/null | head -1 || echo 'cmux (unknown)')"
 DATE="$(date +%Y-%m-%d)"
