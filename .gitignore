@@ -3,3 +3,4 @@ node_modules/
 .superpowers/
 specs/
 .agents/
+skills-lock.json

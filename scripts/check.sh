@@ -17,7 +17,7 @@ if [ -f "$SKILL_DIR/SKILL.md" ] && head -1 "$SKILL_DIR/SKILL.md" | grep -q '^---
 else err "$SKILL_DIR/SKILL.md missing or has no YAML frontmatter"; fi
 
 # 2. No placeholders
-if grep -RInE 'TBD|FIXME|lorem ipsum|\bXXX\b|implement later' \
+if grep -RInE 'TODO|TBD|FIXME|lorem ipsum|\bXXX\b|implement later' \
      "$SKILL_DIR/SKILL.md" README.md "$SKILL_DIR/references" docs/index.html 2>/dev/null; then
   err "placeholder tokens found (see above)"
 else ok "no placeholders"; fi
