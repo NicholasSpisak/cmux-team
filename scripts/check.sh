@@ -44,7 +44,7 @@ done
 # 5. Docs SEO/self-containment sanity
 D=docs/index.html
 if [ -f "$D" ]; then
-  [ "$(grep -co '<h1' "$D")" = "1" ] || err "$D: must have exactly one <h1>"
+  [ "$(grep -o '<h1' "$D" | wc -l | tr -d ' ')" = "1" ] || err "$D: must have exactly one <h1>"
   grep -q '<title>' "$D" || err "$D: missing <title>"
   grep -qi '<meta[^>]*name="description"' "$D" || err "$D: missing meta description"
   grep -qi 'rel="canonical"' "$D" || err "$D: missing canonical link"

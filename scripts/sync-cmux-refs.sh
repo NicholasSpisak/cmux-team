@@ -16,7 +16,7 @@ prov(){ printf '<!--\nCaptured-From: %s\nCaptured-cmux-version: %s\nCaptured-Dat
   echo
   echo '## `cmux --help`'
   echo '```'
-  cmux --help 2>&1
+  cmux --help 2>&1 || echo "(cmux --help unavailable)"
   echo '```'
   echo
   echo '## `cmux capabilities`'
@@ -31,7 +31,7 @@ prov(){ printf '<!--\nCaptured-From: %s\nCaptured-cmux-version: %s\nCaptured-Dat
   echo
   echo '## `cmux docs`'
   echo '```'
-  cmux docs 2>&1
+  cmux docs 2>&1 || echo "(cmux docs unavailable)"
   echo '```'
   for t in api agents browser settings; do
     echo
