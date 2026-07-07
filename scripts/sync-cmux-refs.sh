@@ -45,6 +45,17 @@ prov(){ printf '<!--\nCaptured-From: %s\nCaptured-cmux-version: %s\nCaptured-Dat
   echo '```'
   ls -1 "$HOME/.agents/skills" 2>/dev/null | grep -i '^cmux' || echo "(none found)"
   echo '```'
+  echo
+  echo '## /cmux-workspace conventions (excerpt from the installed skill)'
+  echo
+  echo 'These non-disruptive rules are what cmux-team plans against; grounded here so the skill does not restate them from memory.'
+  echo '```'
+  if [ -f "$HOME/.agents/skills/cmux-workspace/SKILL.md" ]; then
+    sed -n '1,60p' "$HOME/.agents/skills/cmux-workspace/SKILL.md"
+  else
+    echo "(cmux-workspace skill not installed)"
+  fi
+  echo '```'
 } > "$REF/cmux-docs.snapshot.md"
 
 echo "synced references at $VER ($DATE)"

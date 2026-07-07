@@ -16,7 +16,7 @@
 ```
 /cmux "OBJECTIVE: Add rate limiting to POST /orders.
 
-TEAM (4):
+ROSTER (4):
 • LEAD — claude-opus-4-8 · thinking=high. Decompose, delegate, judge builds on
   the rubric, synthesize best-of-both, verify.
 • IMPLEMENTER-A — claude-opus-4-8 · thinking=high. Worktree ../ord-a, branch
@@ -26,9 +26,9 @@ TEAM (4):
 • REVIEWER — claude-sonnet-5 · thinking=medium. Edge-case tests (burst, clock
   skew, distributed); verify the synthesis.
 
-RUBRIC: correctness · edge cases · readability · coverage · blast radius · idiomatic fit.
 PROTOCOL: A,B build isolated → LEAD scores blind to provenance → synthesize →
   REVIEWER verifies → tests pass → present to human.
+RUBRIC: correctness · edge cases · readability · coverage · blast radius · idiomatic fit.
 CONSTRAINTS: worktree per implementer; --focus false; no merge without human approval."
 ```
 

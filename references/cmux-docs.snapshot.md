@@ -148,3 +148,69 @@ cmux-socket-policy
 cmux-testing
 cmux-workspace
 ```
+
+## /cmux-workspace conventions (excerpt from the installed skill)
+
+These non-disruptive rules are what cmux-team plans against; grounded here so the skill does not restate them from memory.
+```
+---
+name: cmux-workspace
+description: "Work inside the current cmux workspace and terminal. Use for cmux workspace, current workspace, caller surface, panes, surfaces, socket targeting, and non-interfering cmux automation."
+---
+
+# cmux Workspace
+
+Use this skill when a task should be scoped to the cmux workspace that invoked the agent. A workspace is the sidebar tab-like unit in cmux. It contains split panes, and each pane contains one or more surfaces. A surface is the terminal or browser session the user interacts with.
+
+## Default Rule
+
+Scope actions to the current caller workspace unless the user explicitly asks for another workspace, another window, or global state.
+
+Do not assume the visually focused cmux workspace is the right target. An agent can be running in one workspace while the user is looking at another. Prefer the caller environment first:
+
+```bash
+printf 'workspace=%s\nsurface=%s\nsocket=%s\n' \
+  "${CMUX_WORKSPACE_ID:-}" \
+  "${CMUX_SURFACE_ID:-}" \
+  "${CMUX_SOCKET_PATH:-}"
+cmux identify --json
+```
+
+Use `CMUX_WORKSPACE_ID` as the default workspace anchor and `CMUX_SURFACE_ID` as the default caller terminal/surface anchor. If those are missing, use `cmux identify --json` and be explicit that you are using the currently focused cmux context.
+
+## Non-Disruptive Automation
+
+The user may be visually focused on a different workspace, window, or app while an agent works in the caller workspace. Treat layout and focus as separate concerns. Never call focus-changing verbs speculatively.
+
+Never call these without an explicit user ask:
+
+- `select-workspace` switches the visible sidebar tab.
+- `focus-pane` / `focus-panel` yanks pane or surface focus.
+- `tab-action` with focus-changing actions.
+
+These are user-affecting actions, like clicks. The rule applies even inside the caller's own workspace, since the user may be looking elsewhere.
+
+Build layout additively, in one shot. Prefer commands that create a new pane already populated with the right surface:
+
+```bash
+# pane and content in one call, no follow-up needed
+cmux new-pane --workspace "${CMUX_WORKSPACE_ID}" --type browser --direction right --url "http://127.0.0.1:8765"
+cmux new-pane --workspace "${CMUX_WORKSPACE_ID}" --type terminal --direction down
+```
+
+Avoid create-then-move-then-focus chains. If a layout command rejects a valid `surface:` or `pane:` ref, do not work around it by focusing. Report the bug to the user and stop.
+
+Pass `--focus false` whenever the verb supports it. `move-surface --focus false` preserves the user's current attention. Other commands may grow the same flag over time (https://github.com/manaflow-ai/cmux/issues/1418, https://github.com/manaflow-ai/cmux/issues/2820).
+
+## Right-Side Helper Pane
+
+When opening auxiliary output for the current task (preview apps, TUIs, logs, one-off shells, browser checks), keep the workspace organized by reusing a helper pane to the right of the caller terminal.
+
+First inspect the caller context and panes:
+
+```bash
+cmux identify --json
+cmux list-panes --workspace "${CMUX_WORKSPACE_ID:-}" --json
+cmux list-pane-surfaces --workspace "${CMUX_WORKSPACE_ID:-}" --json
+```
+```
