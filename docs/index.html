@@ -23,7 +23,7 @@
     --surface-2:#FFFFFF;
     --ink:#12151A;
     --ink-soft:#454C55;
-    --ink-faint:#6B7280;
+    --ink-faint:#5A626E;
     --line:rgba(18,21,26,.13);
     --line-strong:rgba(18,21,26,.24);
     --claude:#B65F2C;
@@ -42,7 +42,7 @@
       --surface-2:#1A1F27;
       --ink:#E9EBEF;
       --ink-soft:#AEB6C2;
-      --ink-faint:#7C8592;
+      --ink-faint:#949DAA;
       --line:rgba(233,235,239,.13);
       --line-strong:rgba(233,235,239,.24);
       --shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.6);
@@ -50,13 +50,13 @@
   }
   :root[data-theme="light"]{
     --paper:#E9ECEF; --surface:#F6F7F9; --surface-2:#FFFFFF;
-    --ink:#12151A; --ink-soft:#454C55; --ink-faint:#6B7280;
+    --ink:#12151A; --ink-soft:#454C55; --ink-faint:#5A626E;
     --line:rgba(18,21,26,.13); --line-strong:rgba(18,21,26,.24);
     --shadow:0 1px 2px rgba(18,21,26,.06), 0 8px 24px -12px rgba(18,21,26,.18);
   }
   :root[data-theme="dark"]{
     --paper:#0E1116; --surface:#151920; --surface-2:#1A1F27;
-    --ink:#E9EBEF; --ink-soft:#AEB6C2; --ink-faint:#7C8592;
+    --ink:#E9EBEF; --ink-soft:#AEB6C2; --ink-faint:#949DAA;
     --line:rgba(233,235,239,.13); --line-strong:rgba(233,235,239,.24);
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.6);
   }
@@ -621,7 +621,7 @@
     <div class="wrap">
       <div class="section-head">
         <span class="kicker">How it works</span>
-        <h2>Five moves from objective to roster</h2>
+        <h2>Six moves from objective to roster</h2>
         <p>
           Given a coding objective, cmux-team reasons through staffing the same
           way a technical lead would — then writes the spec down.
@@ -629,6 +629,7 @@
       </div>
 
       <div class="moves">
+        <div class="move"><span class="n">00</span><h4>Ground in cmux</h4><p>Confirm the <code>cmux</code> CLI and load the vendored references — the latest cmux verbs &amp; docs — so the plan never invents syntax.</p></div>
         <div class="move"><span class="n">01</span><h4>Analyze</h4><p>How open-ended is it? How many distinct viable approaches exist? What's parallelizable?</p></div>
         <div class="move"><span class="n">02</span><h4>Pattern</h4><p>Pick a topology: diverse-build + judge, decompose + assemble, or solo.</p></div>
         <div class="move"><span class="n">03</span><h4>Staff</h4><p>Assign model, thinking level, and headcount per role. Right-size every seat.</p></div>
