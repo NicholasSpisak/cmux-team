@@ -185,6 +185,21 @@ if [ -d "$KIT" ]; then
     ok "lead.md forbids self-editing the kit"
   else err "lead.md must forbid editing roster.md/worker-*.md (it will otherwise 'fix' the plan)"; fi
 
+  # 7j. `claude --append-system-prompt-file X` with NO positional prompt opens an
+  # interactive session and idles forever — a system prompt does not make the agent take a
+  # turn. Verified A/B. Every claude boot line must pass a positional prompt after the file.
+  if grep -h 'append-system-prompt-file' "$KIT/lead.md" "$SKILL_DIR/references/orchestration-recipe.md" 2>/dev/null \
+       | grep -v '^[[:space:]]*#' | grep 'cmux send' | grep -qv 'md.[[:space:]]*\\\?"Boot'; then
+    err "a claude boot line has no positional prompt — the worker will idle, never taking a turn"
+  else ok "every claude worker boot passes a positional prompt"; fi
+
+  # 7k. Model aliases must come from staffing-heuristics (the single source of truth).
+  SH="$SKILL_DIR/references/staffing-heuristics.md"
+  while IFS= read -r alias; do
+    grep -qF -- "\`$alias\`" "$SH" || err "model alias '$alias' is not listed in staffing-heuristics.md"
+  done < <(grep -rhoE -- '--model \\?"[^"\\]+' "$KIT" | sed -E 's/.*"//' | sort -u | grep -v '__')
+  ok "every emitted model alias is declared in staffing-heuristics.md"
+
   ok "kit templates checked"
 else err "missing $KIT"; fi
 

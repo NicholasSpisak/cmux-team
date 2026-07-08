@@ -47,7 +47,7 @@ window window:1 [current]
         └── surface surface:47 [terminal] "offers" [selected] tty=ttys020
 ```
 
-## 1. Four rules that make or break every sequence
+## 1. Five rules that make or break every sequence
 
 ### Rule 1 — Never `$(...)`-capture a cmux ref. Parse it.
 Each verb prints a *different* `OK` line. Verified:
@@ -194,13 +194,25 @@ cmux set-status "__ROLE__" "booting" --workspace "$WS" --icon circle --color '#6
 
 # Boot. Alias quoted (Rule 3); kit path absolute; role + refs exported so the worker
 # can report home (§4) without guessing anything.
-cmux send --surface "$SURF" "export CMUX_TEAM_ROLE=__ROLE__ CMUX_TEAM_WS=$WS CMUX_TEAM_RUN='$TEAM_RUN' && claude --dangerously-skip-permissions --model \"__MODEL__\" --append-system-prompt-file '$KIT/worker-__ROLE__.md'"
+#
+# THE POSITIONAL PROMPT IS MANDATORY. `claude --append-system-prompt-file X` with no
+# positional argument opens an interactive session and sits at the input box forever —
+# a system prompt does not, by itself, make the agent take a turn. Verified A/B:
+#   without → idle input box, no output at all
+#   with    → "⏺ ready:<role>" within seconds
+cmux send --surface "$SURF" "export CMUX_TEAM_ROLE=__ROLE__ CMUX_TEAM_WS=$WS CMUX_TEAM_RUN='$TEAM_RUN' && claude --dangerously-skip-permissions --model \"__MODEL__\" --append-system-prompt-file '$KIT/worker-__ROLE__.md' \"Boot now: follow your system prompt. Print ready:__ROLE__, run report ready, then wait.\""
 cmux send-key --surface "$SURF" enter
 
-# Codex variant — codex has no system-prompt-file flag; the role prompt is positional,
-# and --dangerously-bypass-approvals-and-sandbox is its autonomy flag:
+# Codex variant — codex has no system-prompt-file flag; the role prompt IS the positional
+# argument (so it always takes a turn), and --dangerously-bypass-approvals-and-sandbox is
+# its autonomy flag. Use an alias the account actually supports (see staffing-heuristics):
 #   cmux send --surface "$SURF" "export CMUX_TEAM_ROLE=__ROLE__ CMUX_TEAM_WS=$WS CMUX_TEAM_RUN='$TEAM_RUN' && codex --model \"__MODEL__\" --dangerously-bypass-approvals-and-sandbox \"\$(cat '$KIT/worker-__ROLE__.md')\""
 #   cmux send-key --surface "$SURF" enter
+
+# HAZARD: a brand-new git worktree is a directory claude has never seen, so its first boot
+# may stop on "Do you trust the files in this folder?" — before any prompt is processed.
+# --dangerously-skip-permissions does NOT skip it. If a worker misses its ready: deadline,
+# read its tab; if you see the trust dialog, `cmux send-key --surface "$SURF" enter`.
 ```
 
 `savref` is what makes `$SURF_<ROLE>` available to the delegation and judging blocks that

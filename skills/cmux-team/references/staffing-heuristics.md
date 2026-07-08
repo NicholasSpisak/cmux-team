@@ -9,7 +9,7 @@ read by `cmux-team` Move 3. Update model IDs here when they change; nowhere else
 |---|---|---|---|---|
 | Lead / judge / architect | `claude-opus-4-8` | high–xhigh | always 1 | Deepest reasoning; owns judging + synthesis |
 | Primary implementer | `claude-opus-4-8` | high | 1 | Most robust code on hard, ambiguous problems |
-| Diverse implementer | `codex · gpt-5-codex` | high | 1 (max 2) | Different model family → genuinely different approach |
+| Diverse implementer | `codex · gpt-5.5` | high | 1 (max 2) | Different model family → genuinely different approach |
 | Reviewer / tester | `claude-sonnet-5` | medium | +1 if verify-heavy | Strong & cheaper; verification needn't be Opus |
 | Scaffolder / mechanic | `claude-haiku-4-5` | low | +1 per independent chore | Fast & cheap; mechanical work needs no deep think |
 
@@ -25,9 +25,19 @@ source of truth for every model string the skill emits:
 | Role | Canonical ID (table) | Launcher `--model` alias |
 |---|---|---|
 | Lead / primary implementer (Opus) | `claude-opus-4-8` | `opus[1m]` (Opus 4.8 + 1M context = `claude-opus-4-8[1m]`) |
-| Diverse implementer (Codex) | `codex · gpt-5-codex` | `gpt-5-codex` |
+| Diverse implementer (Codex) | `codex · gpt-5.5` | `gpt-5.5` |
 | Reviewer (Sonnet) | `claude-sonnet-5` | `sonnet` |
 | Scaffolder (Haiku) | `claude-haiku-4-5` | `haiku` |
+
+**Verify the codex alias before you emit it.** `gpt-5-codex` is rejected on a
+ChatGPT-account Codex — the pane dies with
+`{"type":"error","status":400,… "The 'gpt-5-codex' model is not supported when using Codex
+with a ChatGPT account."}` and the worker never boots. Read the account's own default from
+`~/.codex/config.toml` (`model = "gpt-5.5"`) and smoke it in one second:
+
+```bash
+codex exec --model gpt-5.5 --skip-git-repo-check "Reply with exactly: PONG"   # → PONG
+```
 
 **Always quote the alias in emitted shell:** write `--model "opus[1m]"`, never bare
 `--model opus[1m]`. Both `launch.sh --command '…'` and `cmux send --surface … '…'` hand
@@ -35,7 +45,7 @@ their string to an *interactive shell* to re-parse. zsh (the common default on m
 treats `[1m]` as a glob character class and aborts the line with
 `zsh: no matches found: opus[1m]`. bash silently passes it through, so this bug is
 invisible on bash and fatal on zsh. Aliases without brackets (`sonnet`, `haiku`,
-`gpt-5-codex`) are unaffected — quote them anyway for uniformity.
+`gpt-5.5`) are unaffected — quote them anyway for uniformity.
 
 ## Thinking-level guidance
 

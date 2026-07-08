@@ -128,7 +128,14 @@ cmux read-screen --surface "$SURF_<ROLE>" --lines 40   # fallback: read a worker
 
 - Each worker signals `ready:<role>` (and prints it) when booted. Wait for all of them
   before delegating. If a worker never signals, you will block until timeout — read its
-  tab with `read-screen` rather than waiting again.
+  tab with `read-screen` rather than waiting again. Two things stall a boot:
+  - **Trust dialog.** A brand-new git worktree is a folder claude has never seen, so its
+    first boot can stop on "Do you trust the files in this folder?" —
+    `--dangerously-skip-permissions` does not skip it. Answer it:
+    `cmux send-key --surface "$SURF_<ROLE>" enter`.
+  - **Bad model alias.** e.g. codex answers `400 … 'gpt-5-codex' is not supported when
+    using Codex with a ChatGPT account` and never starts. Report it; do not silently swap
+    the model.
 - Delegate: `cmux send --surface "$SURF_<ROLE>" '<task>'` then `cmux send-key --surface "$SURF_<ROLE>" enter`.
 - A worker prints `DONE:<role>` on success, `BLOCKED:<role> <reason>` if stuck.
 - Keep the human oriented: `cmux set-progress <0.0-1.0> --label "wave 1: 2/4 done" --workspace "$WS"`.
