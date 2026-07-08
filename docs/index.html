@@ -4,17 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>cmux-team — Multi-Agent AI Coding Orchestration for Claude Code &amp; Codex</title>
-<meta name="description" content="cmux-team is a planner skill that designs the optimal multi-agent team for any coding task — role, model, thinking level, and count — and outputs a ready-to-run /cmux system prompt. Orchestrate Claude Code and Codex together.">
+<meta name="description" content="cmux-team designs the optimal multi-agent team for any coding task — role, model, thinking level, and count — and writes an executable launch kit: a lead prompt, one worker prompt per teammate, and a one-line launcher that stands up an observable, named-pane team in cmux. Orchestrate Claude Code and Codex together.">
 <link rel="canonical" href="https://nicholasspisak.github.io/cmux-team/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="cmux-team — Multi-Agent AI Coding Orchestration">
-<meta property="og:description" content="Design the optimal Claude Code + Codex agent team and get a ready-to-run /cmux system prompt. It plans; you run.">
+<meta property="og:description" content="Design the optimal Claude Code + Codex agent team and get an executable launch kit — one line stands up the whole observable team. It plans; you launch.">
 <meta property="og:url" content="https://nicholasspisak.github.io/cmux-team/">
+<meta property="og:image" content="https://nicholasspisak.github.io/cmux-team/assets/cmux-team-banner.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="cmux-team — Multi-Agent AI Coding Orchestration">
-<meta name="twitter:description" content="Design the optimal Claude Code + Codex agent team and get a ready-to-run /cmux system prompt.">
+<meta name="twitter:description" content="Design the optimal Claude Code + Codex agent team and get an executable launch kit — one line stands up the whole observable team.">
+<meta name="twitter:image" content="https://nicholasspisak.github.io/cmux-team/assets/cmux-team-banner.png">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"SoftwareApplication","name":"cmux-team","applicationCategory":"DeveloperApplication","operatingSystem":"macOS","description":"A planner skill that designs multi-agent AI coding teams for cmux and outputs a ready-to-run /cmux system prompt.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://nicholasspisak.github.io/cmux-team/"}
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"cmux-team","applicationCategory":"DeveloperApplication","operatingSystem":"macOS","description":"A staffing planner that designs multi-agent AI coding teams for cmux and writes an executable launch kit — lead + worker prompts and a one-line launcher — that stands up an observable, named-pane team.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://nicholasspisak.github.io/cmux-team/"}
 </script>
 <style>
   :root{
@@ -521,6 +523,7 @@
     </a>
     <div class="navlinks">
       <a href="#how-it-works">How it works</a>
+      <a href="#benefits">Benefits</a>
       <a href="#install">Install</a>
       <a href="#academy">Academy</a>
       <a class="cta" href="https://github.com/NicholasSpisak/cmux-team">GitHub ↗</a>
@@ -536,14 +539,20 @@
 
   <!-- ============ HERO ============ -->
   <section class="hero" style="border-top:none;">
+    <div class="wrap">
+      <img class="reveal" src="assets/cmux-team-banner.png" alt="cmux-team — multi-agent AI coding orchestration: a lead agent and worker agents in named cmux panes" style="width:100%; border-radius:var(--radius); border:1px solid var(--line); box-shadow:var(--shadow); margin-bottom:clamp(2rem,5vw,3rem);">
+    </div>
     <div class="wrap hero-grid">
       <div class="reveal">
-        <span class="kicker">Planner skill for cmux</span>
-        <h1>Multi-agent AI coding orchestration, <em>planned before it runs</em></h1>
+        <span class="kicker">Staffing planner + launch kit for cmux</span>
+        <h1>Plan the optimal team, then <em>launch the whole observable team</em> with one line</h1>
         <p class="lede">
           cmux-team designs the optimal agent team for a coding objective — role,
-          model, thinking level, and count — then hands you a ready-to-run
-          <code>/cmux</code> system prompt. It plans; you run. Built to orchestrate
+          model, thinking level, and count — then writes an executable
+          <strong>launch kit</strong>: a lead prompt, one worker prompt per
+          teammate, and a one-line launcher. Review the kit, then run the
+          launcher yourself — it cold-starts cmux, boots the lead, and the lead
+          spawns every worker into its own named pane. Built to orchestrate
           Claude Code and Codex together, on purpose.
         </p>
         <div class="btn-row">
@@ -621,10 +630,11 @@
     <div class="wrap">
       <div class="section-head">
         <span class="kicker">How it works</span>
-        <h2>Six moves from objective to roster</h2>
+        <h2>Six moves from objective to a running team</h2>
         <p>
           Given a coding objective, cmux-team reasons through staffing the same
-          way a technical lead would — then writes the spec down.
+          way a technical lead would — then writes an executable launch kit,
+          not just a spec.
         </p>
       </div>
 
@@ -633,13 +643,13 @@
         <div class="move"><span class="n">01</span><h4>Analyze</h4><p>How open-ended is it? How many distinct viable approaches exist? What's parallelizable?</p></div>
         <div class="move"><span class="n">02</span><h4>Pattern</h4><p>Pick a topology: diverse-build + judge, decompose + assemble, or solo.</p></div>
         <div class="move"><span class="n">03</span><h4>Staff</h4><p>Assign model, thinking level, and headcount per role. Right-size every seat.</p></div>
-        <div class="move"><span class="n">04</span><h4>Write</h4><p>Emit OBJECTIVE, ROSTER, PROTOCOL, RUBRIC, and CONSTRAINTS as one block.</p></div>
-        <div class="move"><span class="n">05</span><h4>Present &amp; halt</h4><p>Output the roster and the <code>/cmux</code> prompt. Nothing runs yet.</p></div>
+        <div class="move"><span class="n">04</span><h4>Generate the launch kit</h4><p>Write <code>.cmux-team/&lt;slug&gt;/</code>: a lead prompt, one worker prompt per teammate, and the one-line launcher.</p></div>
+        <div class="move"><span class="n">05</span><h4>Present the launcher &amp; halt</h4><p>Print the roster and the launch line. Nothing runs until you run it.</p></div>
       </div>
 
       <div class="halt-banner">
         <span class="tag">HALTS HERE</span>
-        <p>cmux-team never spawns agents or edits code. It stops the moment the plan is written — you review it, tweak the roster, and launch it yourself.</p>
+        <p>cmux-team never spawns agents or edits code itself. It stops the moment the launch kit is written — you review the roster and prompts under <code>.cmux-team/&lt;slug&gt;/</code>, then run the launcher yourself. That one line is all it takes to stand up the whole observable team.</p>
       </div>
 
       <p class="kicker" style="margin-bottom:.9rem;">Worked example — <code>/cmux-team "add rate limiting to the POST /orders endpoint"</code></p>
@@ -684,23 +694,77 @@
       </div>
 
       <div class="prompt-block">
-        <div class="bar"><span class="dot"></span>Deliverable — launch prompt</div>
-        <pre><code>/cmux "OBJECTIVE: Add rate limiting to POST /orders.
+        <div class="bar"><span class="dot"></span>Deliverable — launch kit</div>
+        <pre><code>.cmux-team/rate-limit-orders/
+├─ launch.sh                    <span class="hl"># the one-line launcher, below</span>
+├─ lead.md                      <span class="hl"># spawn recipe + protocol + rubric + observability</span>
+├─ worker-implementer-a.md
+├─ worker-implementer-b.md
+├─ worker-reviewer.md
+└─ roster.md                    <span class="hl"># human-readable roster + launch instructions</span></code></pre>
+      </div>
 
-ROSTER (4):
-• LEAD — claude-opus-4-8 · thinking=high. Decompose, delegate, judge builds on
-  the rubric, synthesize best-of-both, verify.
-• IMPLEMENTER-A — claude-opus-4-8 · thinking=high. Worktree ../ord-a, branch
-  ord/a. Blind to B.
-• IMPLEMENTER-B — codex gpt-5-codex · reasoning=high. Worktree ../ord-b, branch
-  ord/b. Blind to A.
-• REVIEWER — claude-sonnet-5 · thinking=medium. Edge-case tests (burst, clock
-  skew, distributed); verify the synthesis.
+      <div class="prompt-block">
+        <div class="bar"><span class="dot"></span>The launcher — <code>bash .cmux-team/rate-limit-orders/launch.sh</code></div>
+        <pre><code><span class="hl">cmux new-workspace</span> --name "team:rate-limit-orders" --cwd "$(pwd)" \
+  --command 'claude --dangerously-skip-permissions --model opus[1m] \
+    --append-system-prompt-file .cmux-team/rate-limit-orders/lead.md \
+    "Bootstrap your team now, per your system prompt."'</code></pre>
+      </div>
 
-PROTOCOL: A,B build isolated → LEAD scores blind to provenance → synthesize →
-  REVIEWER verifies → tests pass → present to human.
-RUBRIC: correctness · edge cases · readability · coverage · blast radius · idiomatic fit.
-CONSTRAINTS: worktree per implementer; --focus false; no merge without human approval."</code></pre>
+      <p style="color:var(--ink-soft); font-size:.94rem; margin:1.4rem 0 0;">
+        Running that one line cold-starts cmux, boots the <strong>lead</strong>,
+        and the lead spawns <code>implementer-a</code>, <code>implementer-b</code>,
+        and <code>reviewer</code> into their own <strong>named panes</strong>
+        (<code>--focus false</code>, additive layout). Each worker boots with
+        <code>cmux send "claude --model … --append-system-prompt-file worker-&lt;role&gt;.md"</code>,
+        prints <code>ready:&lt;role&gt;</code>, then works. Live status/progress
+        chips (<code>cmux set-status</code> / <code>cmux set-progress</code>) and
+        desktop notifications (<code>cmux notify</code>) surface progress as it
+        happens — you watch the team work instead of guessing. cmux-team stops
+        here: nothing runs until <em>you</em> run the launcher.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ BENEFITS ============ -->
+  <section id="benefits">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="kicker">Why a launch kit beats a plan</span>
+        <h2>A real team, not a prompt you paste in</h2>
+        <p>
+          Older staffing tools stop at an inert prose block you'd have to copy
+          into a chat yourself. cmux-team writes something you can execute —
+          and it stays honest about where the cost lives.
+        </p>
+      </div>
+      <div class="who-grid">
+        <div class="who-card">
+          <span class="kicker">Not inert</span>
+          <h3>A real team standup</h3>
+          <p><code>bash .cmux-team/&lt;slug&gt;/launch.sh</code> cold-starts cmux, boots the lead, and the lead spawns every worker into its own pane and coordinates them — no copy-pasting a prompt by hand.</p>
+        </div>
+        <div class="who-card">
+          <span class="kicker">Watch it work</span>
+          <h3>Observability by default</h3>
+          <p>Live <strong>named panes</strong> (lead, build-be, build-fe, test, …), status/progress chips via <code>cmux set-status</code> / <code>set-progress</code>, and desktop notifications on ready/done/blocked via <code>cmux notify</code>.</p>
+        </div>
+        <div class="who-card">
+          <span class="kicker">Better builds</span>
+          <h3>Diverse-build + judge quality</h3>
+          <p>Independent implementations from different model families build in isolated worktrees; the lead judges both blind on a rubric and synthesizes the best of each.</p>
+        </div>
+        <div class="who-card">
+          <span class="kicker">No waste</span>
+          <h3>Right-sized staffing</h3>
+          <p>Every extra agent is real tokens. The planner staffs 3–6 agents for real work, or a team of one when the objective is trivial — never reflexively parallelized.</p>
+        </div>
+        <div class="who-card">
+          <span class="kicker">Preserved</span>
+          <h3>The human review gate</h3>
+          <p>cmux-team still HALTS after writing the kit. It never runs the launcher for you — you review the roster and prompts under <code>.cmux-team/&lt;slug&gt;/</code>, adjust them, and launch it yourself.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -744,12 +808,12 @@ CONSTRAINTS: worktree per implementer; --focus false; no merge without human app
         <div class="who-card">
           <span class="kicker">Individual devs</span>
           <h3>Running Claude Code and Codex together</h3>
-          <p>You already reach for multiple agents on non-trivial work. cmux-team turns "spin some up" into a reviewable spec before any tokens burn.</p>
+          <p>You already reach for multiple agents on non-trivial work. cmux-team turns "spin some up" into a reviewable launch kit before any tokens burn.</p>
         </div>
         <div class="who-card">
           <span class="kicker">Teams</span>
           <h3>Standardizing agent workflows</h3>
-          <p>Bake a consistent roster, rubric, and protocol into how your team stages diverse-build-and-judge or decompose-and-assemble work.</p>
+          <p>Bake a consistent roster, rubric, protocol, and observability wiring into how your team stages diverse-build-and-judge or decompose-and-assemble work.</p>
         </div>
       </div>
     </div>
