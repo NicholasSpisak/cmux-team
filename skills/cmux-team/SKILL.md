@@ -35,20 +35,29 @@ Assign each role a model, a thinking level, and a headcount using the table in
 `references/staffing-heuristics.md`. Right-size — every extra agent is real
 tokens. Totals usually land at 3–6, or 1 when trivial.
 
-## Move 4 · Write the /cmux system prompt
-Emit a single block containing:
-- **OBJECTIVE** — one sentence.
-- **ROSTER** — every agent: role · model · thinking level · count · worktree.
-- **PROTOCOL** — who builds, who judges, how synthesis + verification work.
-- **RUBRIC** — correctness · edge cases · readability · coverage · blast radius · idiomatic fit.
-- **CONSTRAINTS** — worktree per implementer; `--focus false`; no merge without human approval.
+## Move 4 · Generate the launch kit
+Create `.cmux-team/<slug>/` (slug = dash-case of the objective) by substituting
+the roster into the templates in `assets/kit-templates/`:
+- **`launch.sh`** — the one-line `cmux new-workspace --command 'claude … --append-system-prompt-file .cmux-team/<slug>/lead.md …'` launcher. `__LEAD_MODEL__` = the lead's model from `references/staffing-heuristics.md` (use `opus[1m]` for the opus lead).
+- **`lead.md`** — the lead system prompt: fill `__SPAWN_STEPS__` with one spawn block per worker (from `references/orchestration-recipe.md` §1), `__ROSTER_TABLE__`, and the pattern/count. It already embeds the handshake protocol, observability wiring, and rubric.
+- **`worker-<role>.md`** — one per teammate from `worker.md`, with `__TASK__`, `__MODEL__`, `__THINKING__`, and the worktree/branch for implementers.
+- **`roster.md`** — the human-readable roster + launch instructions.
 
-Format the launch line as `/cmux "<system prompt>"`. Use only cmux capabilities
-present in the references / live CLI.
+Substitute EVERY `__TOKEN__`. Use only cmux verbs present in
+`references/orchestration-recipe.md` / the live CLI. Tell the operator to add
+`.cmux-team/` to their repo's ignore rules; do not edit their `.gitignore` yourself.
 
-## Move 5 · Present & HALT
-Output the roster table and the `/cmux "..."` prompt. **DO NOT LAUNCH IT.**
-Tell the human: review, adjust models/counts, then run it themselves. Stop here.
+## Move 5 · Present the launcher & HALT
+Print the roster table and the exact launch line:
+`bash .cmux-team/<slug>/launch.sh` (or the inlined `cmux new-workspace …`).
+Tell the human: review the kit under `.cmux-team/<slug>/`, adjust models/counts/tasks,
+then run the launcher THEMSELVES. **DO NOT run it. Start no work.** The skill's value
+is the review gate: planning is cheap, execution is where cost lives.
+
+**Non-disruptive note.** Launching a visible team workspace is the operator's explicit
+ask, so `launch.sh` opts into focus for the top-level team workspace. Every worker split
+still passes `--focus false` and layout stays additive — never `select-workspace` or
+`focus-pane` speculatively (see `[[cmux-workspace]]`).
 
 ## References
 | Reference | When to use |
@@ -57,3 +66,5 @@ Tell the human: review, adjust models/counts, then run it themselves. Stop here.
 | `references/cmux-verbs.snapshot.md` | Move 0/4: available cmux CLI verbs & flags |
 | `references/cmux-docs.snapshot.md` | Move 0/4: cmux docs topics & official skill list |
 | `assets/example-plan.md` | A full worked example of the deliverable |
+| `references/orchestration-recipe.md` | Move 4: verified cmux spawn/coordinate/observe sequences the lead runs |
+| `assets/kit-templates/` | Move 4: lead / worker / launch.sh / roster templates to fill in |
