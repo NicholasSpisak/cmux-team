@@ -117,13 +117,18 @@ Each worker, on every state change, appends one line to `$RUN/journal.ndjson`, s
 cmux status, and signals `done:<role>`. You consume all three:
 
 ```bash
-cmux wait-for "done:<role>" --timeout 3600   # block on one worker (default timeout is 30s!)
-cat "$RUN/journal.ndjson"                    # what everyone reported
-cmux list-status --workspace "$WS"           # the board the human is watching
+# cmux wait-for LATCHES: a worker may signal before you wait, with no race.
+# The default timeout is 30s — ALWAYS pass --timeout.
+cmux wait-for "ready:<role>" --timeout 600    # before delegating
+cmux wait-for "done:<role>"  --timeout 3600   # after delegating
+cat "$RUN/journal.ndjson"                     # what everyone reported
+cmux list-status --workspace "$WS"            # the board the human is watching
 cmux read-screen --surface "$SURF_<ROLE>" --lines 40   # fallback: read a worker's screen
 ```
 
-- Each worker prints `ready:<role>` when booted; wait for all before delegating.
+- Each worker signals `ready:<role>` (and prints it) when booted. Wait for all of them
+  before delegating. If a worker never signals, you will block until timeout — read its
+  tab with `read-screen` rather than waiting again.
 - Delegate: `cmux send --surface "$SURF_<ROLE>" '<task>'` then `cmux send-key --surface "$SURF_<ROLE>" enter`.
 - A worker prints `DONE:<role>` on success, `BLOCKED:<role> <reason>` if stuck.
 - Keep the human oriented: `cmux set-progress <0.0-1.0> --label "wave 1: 2/4 done" --workspace "$WS"`.

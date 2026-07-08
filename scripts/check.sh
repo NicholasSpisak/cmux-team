@@ -153,9 +153,18 @@ if [ -d "$KIT" ]; then
   # It reports via the journal + `cmux wait-for -S`.
   if grep -qE 'cmux send .*(LEAD_SURF|lead.s surface)' "$KIT/worker.md" 2>/dev/null; then
     err "worker.md sends into the lead's surface — concurrent workers corrupt keystrokes"
-  elif ! grep -q 'cmux wait-for -S' "$KIT/worker.md" 2>/dev/null; then
-    err "worker.md has no 'cmux wait-for -S' signal — the lead would never be woken"
-  else ok "workers report via journal + wait-for, never by typing at the lead"; fi
+  elif ! grep -q 'cmux wait-for -S "ready:' "$KIT/worker.md" 2>/dev/null; then
+    err "worker.md never signals ready: — the lead blocks before delegating (team stalls)"
+  elif ! grep -q 'cmux wait-for -S "done:' "$KIT/worker.md" 2>/dev/null; then
+    err "worker.md never signals done: — the lead would never be woken"
+  else ok "workers signal ready:+done: via wait-for, never type at the lead"; fi
+
+  # 7f2. The tokens the lead waits on must be the tokens the worker signals.
+  for tok in ready done; do
+    grep -q "wait-for \"$tok:" "$KIT/lead.md" 2>/dev/null || err "lead.md never waits on $tok:"
+    grep -q "wait-for -S \"$tok:" "$KIT/worker.md" 2>/dev/null || err "worker.md never signals $tok:"
+  done
+  ok "lead's wait tokens match the worker's signal tokens"
 
   # 7g. `cmux wait-for` defaults to a 30s timeout; a lead that omits --timeout will
   # give up on any real task.

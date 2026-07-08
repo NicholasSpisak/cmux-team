@@ -232,21 +232,34 @@ printf '{"role":"%s","state":"%s","note":"%s"}\n' "$CMUX_TEAM_ROLE" done "4 file
 ```
 
 **Channel B — the signal (wake-up).** `cmux wait-for` is a real cross-process
-synchronization token. Verified: lead blocked, worker signalled, lead woke in 2s.
+synchronization token, and it **latches**. Verified:
+
+```
+cmux wait-for -S probe:latch          # signal first, no waiter yet
+cmux wait-for probe:latch --timeout 6 # → returns in 0s. The token IS remembered.
+```
+
+So a worker may signal before the lead starts waiting — no race. Two waiters on one token
+both wake. Because of this, the worker signals **every terminal state**, not just `done`:
 
 ```bash
-# WORKER, when finished:
-cmux set-status "$CMUX_TEAM_ROLE" "done" --workspace "$CMUX_TEAM_WS" --icon checkmark --color '#16a34a' --priority 3
-cmux wait-for -S "done:$CMUX_TEAM_ROLE"
-cmux notify --title "$CMUX_TEAM_ROLE → DONE"
+# WORKER — signal on ready, done, and blocked. `working` is journal-only (it repeats).
+cmux wait-for -S "ready:$CMUX_TEAM_ROLE"     # after printing ready:<role>
+cmux wait-for -S "done:$CMUX_TEAM_ROLE"      # after printing DONE:<role>
+cmux wait-for -S "blocked:$CMUX_TEAM_ROLE"   # AND done: — so the lead is never stranded
 
-# LEAD, to block on one worker (default timeout 30s — always pass --timeout):
-cmux wait-for "done:anchor-a" --timeout 3600
+# LEAD — default timeout is 30s. ALWAYS pass --timeout.
+cmux wait-for "ready:anchor-a" --timeout 600    # before delegating
+cmux wait-for "done:anchor-a"  --timeout 3600   # after delegating
 
 # LEAD, to see everything at once:
 cat "$RUN/journal.ndjson"
 cmux list-status --workspace "$WS"
 ```
+
+**If a worker never signals `ready:`, the lead blocks until timeout and the team stalls
+before it starts.** The worker prompt and the lead prompt must agree on the token names.
+This is the single easiest way to deadlock the team; `scripts/smoke.sh` asserts it.
 
 The worker also prints `ready:<role>` / `DONE:<role>` / `BLOCKED:<role> <reason>` on its
 own screen, so the human clicking that tab sees the same story. The lead can always fall

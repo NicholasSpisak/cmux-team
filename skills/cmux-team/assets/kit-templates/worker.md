@@ -18,7 +18,7 @@ concurrent workers corrupt each other's keystrokes. Report through these two cha
 Define this helper once, then call it on every state change:
 
 ```bash
-report() {  # report <state> <note>
+report() {  # report <state> <note>   — states: ready | working | done | blocked
   printf '{"role":"%s","state":"%s","note":"%s"}\n' "$CMUX_TEAM_ROLE" "$1" "$2" \
     >> "$CMUX_TEAM_RUN/journal.ndjson"
   case "$1" in
@@ -27,11 +27,18 @@ report() {  # report <state> <note>
     done)    cmux set-status "$CMUX_TEAM_ROLE" done    --workspace "$CMUX_TEAM_WS" --icon checkmark --color '#16a34a' --priority 3 ;;
     blocked) cmux set-status "$CMUX_TEAM_ROLE" blocked --workspace "$CMUX_TEAM_WS" --icon exclamationmark --color '#dc2626' --priority 4 ;;
   esac
+  # Wake the LEAD. cmux latches the token, so signalling before it waits is safe.
+  # `working` repeats, so it is journal-only. `blocked` also fires done: to avoid stranding.
+  case "$1" in
+    ready)   cmux wait-for -S "ready:$CMUX_TEAM_ROLE" ;;
+    done)    cmux wait-for -S "done:$CMUX_TEAM_ROLE" ;;
+    blocked) cmux wait-for -S "blocked:$CMUX_TEAM_ROLE"; cmux wait-for -S "done:$CMUX_TEAM_ROLE" ;;
+  esac
 }
 ```
 
-1. On startup: print exactly `ready:__ROLE__`, run `report ready "booted"`, then STOP and
-   wait for instructions.
+1. On startup: print exactly `ready:__ROLE__`, run `report ready "booted"` — **this is what
+   unblocks the LEAD; if you skip it the whole team stalls** — then STOP and wait.
 2. The LEAD sends you a task. Run `report working "<one-line what you're doing>"`, then do
    only that task. Stay in your worktree.
 3. Narrate milestones as you go: `report working "3/5 files rewritten"`. This is what the
@@ -39,11 +46,10 @@ report() {  # report <state> <note>
 4. When finished: print `DONE:__ROLE__` on its own line, then
    ```bash
    report done "<one-line summary>"
-   cmux wait-for -S "done:$CMUX_TEAM_ROLE"      # wakes the LEAD
    cmux notify --title "$CMUX_TEAM_ROLE → DONE"
    ```
-5. If blocked: print `BLOCKED:__ROLE__ <one-line reason>`, run `report blocked "<reason>"`,
-   signal `cmux wait-for -S "done:$CMUX_TEAM_ROLE"` so the LEAD is not left waiting, and stop.
+5. If blocked: print `BLOCKED:__ROLE__ <one-line reason>`, then `report blocked "<reason>"`
+   (which also fires `done:` so the LEAD is never left waiting), and stop.
 6. Keep terminal output concise — the LEAD may `read-screen` your tab. Do not merge or push.
 
 ## Your task
