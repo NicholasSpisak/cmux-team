@@ -16,6 +16,35 @@ if [ -f "$SKILL_DIR/SKILL.md" ] && head -1 "$SKILL_DIR/SKILL.md" | grep -q '^---
   ok "SKILL.md frontmatter"
 else err "$SKILL_DIR/SKILL.md missing or has no YAML frontmatter"; fi
 
+# 1b. Frontmatter must be VALID YAML. `npx skills add` parses it; an unquoted scalar
+# containing ": " makes the parser see a mapping -> "No skills found" (silent install failure).
+if command -v python3 >/dev/null 2>&1 && [ -f "$SKILL_DIR/SKILL.md" ]; then
+  python3 - "$SKILL_DIR/SKILL.md" <<'PY'
+import re, sys
+src = open(sys.argv[1]).read()
+m = re.match(r'^---\n(.*?)\n---\n', src, re.S)
+if not m:
+    sys.exit(1)
+fm = m.group(1)
+try:
+    import yaml
+except ImportError:  # no pyyaml: cheap guard for the exact footgun above
+    for line in fm.split('\n'):
+        key, sep, val = line.partition(':')
+        val = val.strip()
+        if sep and val and val[0] not in '"\'' and ': ' in val:
+            sys.exit(1)
+    sys.exit(0)
+try:
+    d = yaml.safe_load(fm)
+except Exception:
+    sys.exit(1)
+sys.exit(0 if isinstance(d, dict) and d.get('name') and d.get('description') else 1)
+PY
+  if [ $? -eq 0 ]; then ok "SKILL.md frontmatter parses as YAML (installable)"
+  else err "SKILL.md frontmatter is not valid YAML — 'npx skills add' reports 'No skills found'. Quote the description or remove ': ' from it."; fi
+fi
+
 # 2. No placeholders
 if grep -RInE 'TODO|TBD|FIXME|lorem ipsum|\bXXX\b|implement later' \
      "$SKILL_DIR/SKILL.md" README.md "$SKILL_DIR/references" "$SKILL_DIR/assets" docs/index.html 2>/dev/null; then

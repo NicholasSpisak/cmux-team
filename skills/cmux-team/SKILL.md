@@ -1,6 +1,6 @@
 ---
 name: cmux-team
-description: Design the optimal multi-agent cmux team for a coding objective and OUTPUT a ready-to-run launch kit — a one-line cmux launcher plus lead + worker system-prompt files that open cmux and boot an observable team (roster: role, model, thinking level, count; plus topology, coordination protocol, rubric, constraints). It PLANS the team and generates the kit; it does NOT start the work — you review the kit, then run the launcher yourself. Use to staff any non-trivial coding objective before committing tokens; for trivial tasks it recommends a team of one.
+description: "Design the optimal multi-agent cmux team for a coding objective and OUTPUT a ready-to-run launch kit — a one-line cmux launcher plus lead and worker system-prompt files that open cmux and boot an observable team (roster — role, model, thinking level, count — plus topology, coordination protocol, rubric, and constraints). It PLANS the team and generates the kit; it does NOT start the work — you review the kit, then run the launcher yourself. Use to staff any non-trivial coding objective before committing tokens; for trivial tasks it recommends a team of one."
 ---
 
 # cmux Team — the staffing planner
