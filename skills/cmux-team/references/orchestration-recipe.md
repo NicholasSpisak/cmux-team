@@ -1,5 +1,5 @@
 <!--
-Captured-From: cmux --help (verbs) + live-CLI verification per spec §8
+Captured-From: cmux-verbs.snapshot.md + cmux-docs.snapshot.md (cmux 0.64.17) + local cmux --help sub-command checks. Live socket-exec verify pending (not run from a cmux surface).
 Captured-cmux-version: cmux 0.64.17 (97) [9ed29d81a]
 Captured-Date: 2026-07-07
 Hand-authored recipe grounded in cmux-verbs.snapshot.md; re-verify against the
@@ -8,8 +8,7 @@ live CLI (spec §8) whenever this goes stale, then bump the version above.
 
 # cmux orchestration recipe — how the LEAD bootstraps & runs its team
 
-Every verb below appears in `cmux-verbs.snapshot.md`. Never add a verb/flag that
-does not. All refs (`surface:N`, `pane:N`) come from `cmux identify --json` /
+Every verb below appears in `cmux-verbs.snapshot.md`; the `--json` output flag on `identify` / `list-panes` is grounded in `cmux-docs.snapshot.md` (a documented useful command plus the official cmux-workspace skill excerpt). Never add a verb/flag not present in one of these snapshots or the live `cmux --help`. All refs (`surface:N`, `pane:N`) come from `cmux identify --json` /
 `cmux list-panes --json`; never hardcode them.
 
 ## 0. Locate self
