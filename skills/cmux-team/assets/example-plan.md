@@ -37,5 +37,7 @@ implementer-b, and reviewer into their own named panes (`--focus false`), each
 booted with `cmux send "claude --dangerously-skip-permissions --model … --append-system-prompt-file worker-<role>.md"`.
 Statuses (`set-status`/`set-progress`) and `notify` events surface progress live.
 
-cmux-team stops here. Nothing runs until you run the launcher — review the kit,
-tweak the roster, then launch it yourself.
+cmux-team then asks: **"Launch this team?"** Nothing runs until you say yes. On your
+go-ahead it runs the launcher for you (after a `cmux ping` preflight) — you never type
+a command. If this shell is not a trusted cmux caller, it hands you the line instead.
+Once the team is up, the LEAD owns the work; cmux-team stops.

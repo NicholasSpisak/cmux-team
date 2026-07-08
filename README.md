@@ -6,8 +6,10 @@
 and hands you an executable launch kit.** Give it a coding objective; it returns
 the optimal roster — every agent's **role**, **model**, **thinking level**, and
 **count** — plus a ready-to-run **launch kit** under `.cmux-team/<slug>/`: a lead
-prompt, one worker prompt per teammate, and a one-line launcher. You review the
-kit, then run the launcher yourself. It never starts the work itself.
+prompt, one worker prompt per teammate, and a one-line launcher. It shows you the
+roster, asks **"Launch this team?"**, and on your go-ahead runs the launcher for
+you — cmux opens and the team boots. You never type a command, and nothing runs
+until you say yes. It never does the team's work itself.
 
 📄 **Docs & guide:** https://nicholasspisak.github.io/cmux-team/
 🎓 **Learn to operate AI agent teams:** [AI Operator Academy](https://www.skool.com/aioperatoracademy/about)
@@ -39,9 +41,14 @@ cmux-team emits something you can execute:
   the lead judge them blind on a rubric and synthesize the best of each.
 - **Right-sized staffing.** Every extra agent is real tokens — the planner
   staffs 3–6 agents for real work, or a team of one when the task is trivial.
-- **The human review gate is preserved.** The skill still HALTS after writing
-  the kit. It never runs the launcher for you — you review the roster and
-  prompts under `.cmux-team/<slug>/`, adjust them, and launch it yourself.
+- **The human review gate is preserved.** After writing the kit the skill stops
+  and asks *"Launch this team?"* — nothing spawns until you confirm. You review the
+  roster and prompts under `.cmux-team/<slug>/` and adjust them first; then it
+  launches for you. Planning is cheap; execution is where the cost lives.
+- **No command to type.** On confirmation the skill runs the launcher itself (after
+  a `cmux ping` preflight). cmux's socket only answers a trusted caller, so if your
+  agent is running outside a cmux terminal surface it hands you the one-line
+  launcher instead of failing silently.
 
 ## Prerequisites
 

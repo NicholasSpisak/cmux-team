@@ -1,16 +1,19 @@
 ---
 name: cmux-team
-description: "Design the optimal multi-agent cmux team for a coding objective and OUTPUT a ready-to-run launch kit — a one-line cmux launcher plus lead and worker system-prompt files that open cmux and boot an observable team (roster — role, model, thinking level, count — plus topology, coordination protocol, rubric, and constraints). It PLANS the team and generates the kit; it does NOT start the work — you review the kit, then run the launcher yourself. Use to staff any non-trivial coding objective before committing tokens; for trivial tasks it recommends a team of one."
+description: "Design the optimal multi-agent cmux team for a coding objective, generate a launch kit — a one-line cmux launcher plus lead and worker system-prompt files — then, once you confirm, launch it: cmux opens and the lead boots an observable team of agents in named panes (roster — role, model, thinking level, count — plus topology, coordination protocol, rubric, and constraints). It always asks before spending execution tokens, and never does the team's work itself. Use to staff any non-trivial coding objective; for trivial tasks it recommends a team of one."
 ---
 
-# cmux Team — the staffing planner
+# cmux Team — the staffing planner & launcher
 
-You DESIGN the team; you do not run it. Given a coding objective, produce ONE
-deliverable: a reviewable, executable **launch kit** under `.cmux-team/<slug>/` — a
-one-line launcher plus lead + worker prompts — that a human can review, adjust, and launch.
-**Never spawn agents or edit code from this skill.** What you PLAN follows the
-installed `[[cmux-workspace]]` conventions (worktree isolation, `--focus false`,
-additive layout, caller scoping).
+You STAFF the team, then launch it on the human's go-ahead. Given a coding objective,
+produce a reviewable, executable **launch kit** under `.cmux-team/<slug>/` — a one-line
+launcher plus lead + worker prompts — present the roster, and **ask before launching**.
+On confirmation you run the launcher yourself so the human never types a command.
+
+**You never do the team's work.** You do not implement, edit code, or merge. After the
+launcher runs, the LEAD agent owns delegation, judging, and synthesis — you stop.
+What you plan follows the installed `[[cmux-workspace]]` conventions (worktree isolation,
+`--focus false`, additive layout, caller scoping).
 
 ## Move 0 · Ground in cmux (latest)
 Confirm the `cmux` CLI is available (`cmux version`). Load the vendored
@@ -48,12 +51,35 @@ Substitute EVERY `__TOKEN__`. Use only cmux verbs present in
 `references/orchestration-recipe.md` / the live CLI. Tell the operator to add
 `.cmux-team/` to their repo's ignore rules; do not edit their `.gitignore` yourself.
 
-## Move 5 · Present the launcher & HALT
-Print the roster table and the exact launch line:
-`bash .cmux-team/<slug>/launch.sh` (or the inlined `cmux new-workspace …`).
-Tell the human: review the kit under `.cmux-team/<slug>/`, adjust models/counts/tasks,
-then run the launcher THEMSELVES. **DO NOT run it. Start no work.** The skill's value
-is the review gate: planning is cheap, execution is where cost lives.
+## Move 5 · Confirm, then launch
+Print the roster table and where the kit lives (`.cmux-team/<slug>/`). Then **ask the
+human to confirm**: *"Launch this team? Review the roster / kit first; reply yes to
+launch."* Planning is cheap, execution is where cost lives — never skip this gate.
+
+**Do NOT launch until the human says yes. Never launch on your own initiative.**
+
+Once they confirm, YOU run the launcher — the human should not have to type a command:
+
+```bash
+cmux ping                       # preflight: is this shell a trusted cmux caller?
+bash .cmux-team/<slug>/launch.sh
+```
+
+**Preflight matters.** cmux's socket only answers a trusted caller. `cmux ping` exits
+non-zero (`Failed to write to socket (Broken pipe)`) when it is not — typically because
+the agent is running *outside* a cmux terminal surface. Check the exit code, not the text.
+
+- **`cmux ping` succeeds** → run `bash .cmux-team/<slug>/launch.sh`. cmux opens the
+  `team:<slug>` workspace, the lead boots and spawns each worker into its own named pane.
+  Then report what came up and stop; the lead drives the work from there.
+- **`cmux ping` fails** → do NOT retry blindly. Explain that this shell is not a trusted
+  cmux caller, print the one-line launcher for the human to run themselves, and offer the
+  two fixes: run the coding agent from **inside a cmux terminal surface** (so
+  `CMUX_WORKSPACE_ID`/`CMUX_SURFACE_ID` are inherited), or set a socket password
+  (`CMUX_SOCKET_PASSWORD`, or `socketPassword` in `~/.config/cmux/cmux.json`).
+
+**Never merge, and never do the team's work yourself.** After launching, the lead owns
+delegation, judging, and synthesis; you stop.
 
 **Non-disruptive note.** Launching a visible team workspace is the operator's explicit
 ask, so `launch.sh` opts into focus for the top-level team workspace. Every worker split

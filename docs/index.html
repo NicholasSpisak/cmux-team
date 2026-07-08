@@ -8,7 +8,7 @@
 <link rel="canonical" href="https://nicholasspisak.github.io/cmux-team/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="cmux-team — Multi-Agent AI Coding Orchestration">
-<meta property="og:description" content="Design the optimal Claude Code + Codex agent team and get an executable launch kit — one line stands up the whole observable team. It plans; you launch.">
+<meta property="og:description" content="Design the optimal Claude Code + Codex agent team and get an executable launch kit — one line stands up the whole observable team. It plans, asks, then launches — nothing spawns until you confirm.">
 <meta property="og:url" content="https://nicholasspisak.github.io/cmux-team/">
 <meta property="og:image" content="https://nicholasspisak.github.io/cmux-team/assets/cmux-team-banner.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -644,12 +644,12 @@
         <div class="move"><span class="n">02</span><h4>Pattern</h4><p>Pick a topology: diverse-build + judge, decompose + assemble, or solo.</p></div>
         <div class="move"><span class="n">03</span><h4>Staff</h4><p>Assign model, thinking level, and headcount per role. Right-size every seat.</p></div>
         <div class="move"><span class="n">04</span><h4>Generate the launch kit</h4><p>Write <code>.cmux-team/&lt;slug&gt;/</code>: a lead prompt, one worker prompt per teammate, and the one-line launcher.</p></div>
-        <div class="move"><span class="n">05</span><h4>Present the launcher &amp; halt</h4><p>Print the roster and the launch line. Nothing runs until you run it.</p></div>
+        <div class="move"><span class="n">05</span><h4>Confirm, then launch</h4><p>Show the roster and ask. On your yes it runs the launcher for you — nothing spawns until you confirm.</p></div>
       </div>
 
       <div class="halt-banner">
-        <span class="tag">HALTS HERE</span>
-        <p>cmux-team never spawns agents or edits code itself. It stops the moment the launch kit is written — you review the roster and prompts under <code>.cmux-team/&lt;slug&gt;/</code>, then run the launcher yourself. That one line is all it takes to stand up the whole observable team.</p>
+        <span class="tag">ASKS FIRST</span>
+        <p>cmux-team never does the team's work itself. It stops the moment the launch kit is written and asks <strong>“Launch this team?”</strong> — you review the roster and prompts under <code>.cmux-team/&lt;slug&gt;/</code> and adjust them. Nothing spawns until you say yes; then it runs the launcher for you and the lead takes over.</p>
       </div>
 
       <p class="kicker" style="margin-bottom:.9rem;">Worked example — <code>/cmux-team "add rate limiting to the POST /orders endpoint"</code></p>
@@ -722,7 +722,8 @@
         chips (<code>cmux set-status</code> / <code>cmux set-progress</code>) and
         desktop notifications (<code>cmux notify</code>) surface progress as it
         happens — you watch the team work instead of guessing. cmux-team stops
-        here: nothing runs until <em>you</em> run the launcher.
+        here and asks first: nothing spawns until <em>you</em> confirm — then it
+        runs the launcher for you.
       </p>
     </div>
   </section>
@@ -763,7 +764,12 @@
         <div class="who-card">
           <span class="kicker">Preserved</span>
           <h3>The human review gate</h3>
-          <p>cmux-team still HALTS after writing the kit. It never runs the launcher for you — you review the roster and prompts under <code>.cmux-team/&lt;slug&gt;/</code>, adjust them, and launch it yourself.</p>
+          <p>cmux-team stops after writing the kit and asks <strong>“Launch this team?”</strong> Nothing spawns until you confirm — you review the roster and prompts under <code>.cmux-team/&lt;slug&gt;/</code> and adjust them first. Planning is cheap; execution is where the cost lives.</p>
+        </div>
+        <div class="who-card">
+          <span class="kicker">No typing</span>
+          <h3>It launches for you</h3>
+          <p>On your go-ahead cmux-team runs the launcher itself, after a <code>cmux ping</code> preflight. cmux's socket only answers a trusted caller, so if your agent runs outside a cmux terminal surface it hands you the one-line launcher instead of failing silently.</p>
         </div>
       </div>
     </div>
