@@ -24,14 +24,14 @@ one command you choose to run.
 
 ## What you get — a real team, not a prompt
 
-Older staffing tools stop at an inert prose block you'd paste into a chat. This
-one emits something you can execute:
+The plan used to stop at an inert prose block you'd paste into a chat. Now
+cmux-team emits something you can execute:
 
 - **A real team standup, not a suggestion.** `bash .cmux-team/<slug>/launch.sh`
   cold-starts cmux if needed, boots the LEAD agent, and the LEAD spawns every
   worker into its own pane and coordinates them — no copy-pasting prompts by hand.
-- **Observability by default.** Each worker gets a **named pane** (lead, build-be,
-  build-fe, test, …), live status/progress chips (`cmux set-status` /
+- **Observability by default.** Each worker gets a **named pane** (lead, implementer-a,
+  implementer-b, reviewer, …), live status/progress chips (`cmux set-status` /
   `cmux set-progress`), and desktop notifications on ready/done/blocked
   (`cmux notify`) — you can watch the team work instead of guessing.
 - **Diverse-build + judge quality.** The default topology runs independent
