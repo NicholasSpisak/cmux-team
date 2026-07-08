@@ -95,16 +95,37 @@ NTABS=$(cmux list-pane-surfaces --workspace "$WS" --pane "$WPANE" 2>/dev/null | 
 [ "$NTABS" = "3" ] || err "expected 3 worker tabs in one pane, got $NTABS"
 [ "$NPANES" = "2" ] && [ "$NTABS" = "3" ] && ok "layout: 2 panes, $NTABS worker tabs (no confetti)"
 
-# --- 4. boot fake agents: quoted bracket alias, exported reporting env ---------------
+# --- 4. boot fake agents: real worker-lib, quoted bracket alias, exported reporting env
+# The fake worker is a sourced shell lib, not an LLM: it defines the same report() the
+# generated worker.md defines, so the whole lifecycle below exercises the real contract.
+cat > "$RUN/worker-lib.sh" <<'WLIB'
+report() {  # report <state> <note>
+  printf '{"role":"%s","state":"%s","note":"%s"}\n' "$CMUX_TEAM_ROLE" "$1" "$2" >> "$CMUX_TEAM_RUN/journal.ndjson"
+  case "$1" in
+    ready)   cmux set-status "$CMUX_TEAM_ROLE" ready   --workspace "$CMUX_TEAM_WS" --icon circle --color '#6b7280' --priority 1 ;;
+    working) cmux set-status "$CMUX_TEAM_ROLE" working --workspace "$CMUX_TEAM_WS" --icon play.circle --color '#2563eb' --priority 2 ;;
+    done)    cmux set-status "$CMUX_TEAM_ROLE" done    --workspace "$CMUX_TEAM_WS" --icon checkmark --color '#16a34a' --priority 3 ;;
+    blocked) cmux set-status "$CMUX_TEAM_ROLE" blocked --workspace "$CMUX_TEAM_WS" --icon exclamationmark --color '#dc2626' --priority 4 ;;
+  esac
+  case "$1" in
+    ready)   cmux wait-for -S "ready:$CMUX_TEAM_ROLE" ;;
+    done)    cmux wait-for -S "done:$CMUX_TEAM_ROLE" ;;
+    blocked) cmux wait-for -S "blocked:$CMUX_TEAM_ROLE"; cmux wait-for -S "done:$CMUX_TEAM_ROLE" ;;
+  esac
+}
+# What the LEAD "delegates" to. Stands in for the agent doing its task.
+do_task() { report working "started"; report working "2/2 steps"; report done "gates green"; printf 'DONE:%s\n' "$CMUX_TEAM_ROLE"; }
+WLIB
+
 for entry in "${SURFS[@]}"; do
   role="${entry%%:*}"; surf="${entry#*:}"
-  cmux send --surface "$surf" "export CMUX_TEAM_ROLE=$role CMUX_TEAM_WS=$WS CMUX_TEAM_RUN='$RUN' && printf 'MODEL=%s\\n' \"opus[1m]\" && printf 'ready:%s\\n' \"\$CMUX_TEAM_ROLE\"" >/dev/null 2>&1
+  cmux send --surface "$surf" "export CMUX_TEAM_ROLE=$role CMUX_TEAM_WS=$WS CMUX_TEAM_RUN='$RUN' && . '$RUN/worker-lib.sh' && printf 'MODEL=%s\\n' \"opus[1m]\" && printf 'ready:%s\\n' \"\$CMUX_TEAM_ROLE\" && report ready booted" >/dev/null 2>&1
   cmux send-key --surface "$surf" enter >/dev/null 2>&1
 done
 
 FIRST_SURF_REF="${SURFS[0]#*:}"
 SCREEN=""
-for _ in $(seq 1 20); do
+for _ in $(seq 1 30); do
   sleep 0.5; SCREEN=$(cmux read-screen --surface "$FIRST_SURF_REF" --lines 20 2>&1)
   printf '%s' "$SCREEN" | grep -q 'ready:alpha' && break
 done
@@ -112,9 +133,42 @@ printf '%s' "$SCREEN" | grep -q 'no matches found' && err "zsh globbed the model
 printf '%s' "$SCREEN" | grep -q 'MODEL=opus\[1m\]' \
   && ok "model alias 'opus[1m]' survived the pane's shell verbatim" \
   || err "model alias did not reach the pane intact"
-printf '%s' "$SCREEN" | grep -q 'ready:alpha' \
-  && ok "handshake: worker printed ready:alpha" \
-  || err "handshake never arrived; pane tail: $(printf '%s' "$SCREEN" | tail -3 | tr '\n' '|')"
+
+# --- 4b. LIFECYCLE: every worker signals ready: and the lead's wait returns ----------
+# The bug this guards: workers signalled only done:, the lead waited on ready:, and the
+# team deadlocked at 0% with three healthy agents idle.
+for role in $ROLES; do
+  cmux wait-for "ready:$role" --timeout 60 >/dev/null 2>&1 \
+    || err "lead blocked on ready:$role — worker never signalled (deadlock)"
+done
+ok "lifecycle: lead's wait-for ready: returned for every worker"
+
+# --- 4c. LIFECYCLE: delegate -> working -> done -> lead wakes ------------------------
+for entry in "${SURFS[@]}"; do
+  surf="${entry#*:}"
+  cmux send --surface "$surf" 'do_task' >/dev/null 2>&1     # this is what delegation IS
+  cmux send-key --surface "$surf" enter >/dev/null 2>&1
+done
+for role in $ROLES; do
+  cmux wait-for "done:$role" --timeout 90 >/dev/null 2>&1 \
+    || err "lead never woke on done:$role after delegating"
+done
+ok "lifecycle: delegate -> worker done: -> lead woke, for all $(printf '%s' "$ROLES" | wc -w | tr -d ' ') workers"
+
+# The journal is the human's record of what each worker did. Assert the full arc.
+for role in $ROLES; do
+  for state in ready working done; do
+    grep -q "\"role\":\"$role\",\"state\":\"$state\"" "$RUN/journal.ndjson" \
+      || err "journal missing $role -> $state"
+  done
+done
+ok "journal records ready->working->done for every worker"
+python3 - "$RUN/journal.ndjson" <<'PY' || err "journal is not valid NDJSON"
+import json,sys
+for line in open(sys.argv[1]):
+    if line.strip(): json.loads(line)
+PY
+ok "journal is valid NDJSON end to end"
 
 # --- 5. roster panel docks into the LEAD pane (markdown has no --workspace flag) -----
 printf '# Roster\n\nsmoke\n' > "$TMP/roster.md"
@@ -127,31 +181,37 @@ if [ -n "$MD" ]; then
     || err "roster.md panel did not land in the lead pane"
 else err "markdown open returned no surface"; fi
 
-# --- 6. reporting: journal appends never interleave (regression guard #4) ------------
+# --- 6. reporting: concurrent journal appends never interleave (regression guard #4) --
+: > "$RUN/concurrency.ndjson"
 for role in $ROLES; do
-  ( printf '{"role":"%s","state":"done","note":"gates green"}\n' "$role" >> "$RUN/journal.ndjson" ) &
+  ( printf '{"role":"%s","state":"done","note":"gates green"}\n' "$role" >> "$RUN/concurrency.ndjson" ) &
 done; wait
-LINES=$(grep -c '"state":"done"' "$RUN/journal.ndjson")
+LINES=$(grep -c '"state":"done"' "$RUN/concurrency.ndjson")
 [ "$LINES" = "3" ] || err "journal: expected 3 clean lines, got $LINES"
-grep -q '}{' "$RUN/journal.ndjson" && err "journal lines interleaved"
+grep -q '}{' "$RUN/concurrency.ndjson" && err "journal lines interleaved"
 [ "$LINES" = "3" ] && ok "journal: 3 concurrent appends, none interleaved"
 
-# --- 7. reporting: wait-for is a real cross-process signal ---------------------------
-( sleep 2; cmux wait-for -S "done:alpha" >/dev/null 2>&1 ) &
-if cmux wait-for "done:alpha" --timeout 15 >/dev/null 2>&1; then
-  ok "wait-for: worker signalled, lead woke"
-else err "wait-for handshake failed (lead would hang forever)"; fi
-wait
+# --- 7. wait-for LATCHES: signalling before the waiter arrives is safe ----------------
+# Why it matters: a fast worker may signal done: before the lead starts waiting.
+cmux wait-for -S "smoke:latch" >/dev/null 2>&1
+if cmux wait-for "smoke:latch" --timeout 5 >/dev/null 2>&1; then
+  ok "wait-for latches (signal-before-wait does not race)"
+else err "wait-for does not latch — a fast worker's signal would be lost"; fi
 
-# --- 8. status board is scoped to the team workspace --------------------------------
-for role in $ROLES; do
-  cmux set-status "$role" "done" --workspace "$WS" --icon checkmark --color '#16a34a' --priority 3 >/dev/null 2>&1
-done
+# --- 8. status board reflects the finished team, then teardown clears it -------------
 BOARD=$(cmux list-status --workspace "$WS" 2>&1)
 for role in $ROLES; do
-  printf '%s' "$BOARD" | grep -q "$role=done" || err "status board missing $role=done"
+  printf '%s' "$BOARD" | grep -q "$role=done" || err "status board missing $role=done after lifecycle"
 done
-printf '%s' "$BOARD" | grep -q 'alpha=done' && ok "status board scoped to $WS (all roles green)"
+ok "status board scoped to $WS shows every worker done"
+
+for role in $ROLES; do cmux clear-status "$role" --workspace "$WS" >/dev/null 2>&1; done
+cmux clear-progress --workspace "$WS" >/dev/null 2>&1
+BOARD=$(cmux list-status --workspace "$WS" 2>&1)
+LEFT=0
+for role in $ROLES; do printf '%s' "$BOARD" | grep -q "$role=" && LEFT=1; done
+[ "$LEFT" = "0" ] && ok "teardown: clear-status removed every worker from the board" \
+                  || err "teardown left stale statuses: $BOARD"
 
 # --- 8b. Rule 5: refs must survive a FRESH shell (the lead's next Bash tool call) ----
 # Each spawn block runs in its own shell. Simulate that: write refs in one `bash -c`,

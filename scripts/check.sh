@@ -194,11 +194,24 @@ if [ -d "$KIT" ]; then
   else ok "every claude worker boot passes a positional prompt"; fi
 
   # 7k. Model aliases must come from staffing-heuristics (the single source of truth).
+  # Scan BOTH emitted shell (`--model "X"`) and prose/roster tables (`codex · X`) — a stale
+  # alias in the worked example is copied verbatim by the next run that pattern-matches it.
   SH="$SKILL_DIR/references/staffing-heuristics.md"
   while IFS= read -r alias; do
+    [ -n "$alias" ] || continue
     grep -qF -- "\`$alias\`" "$SH" || err "model alias '$alias' is not listed in staffing-heuristics.md"
-  done < <(grep -rhoE -- '--model \\?"[^"\\]+' "$KIT" | sed -E 's/.*"//' | sort -u | grep -v '__')
-  ok "every emitted model alias is declared in staffing-heuristics.md"
+  done < <( { grep -rhoE -- '--model \\?"[^"\\]+' "$KIT" "$SKILL_DIR/references" | sed -E 's/.*"//'
+              grep -rhoE -- 'codex · [A-Za-z0-9._-]+' "$SKILL_DIR" docs 2>/dev/null | sed -E 's/^codex · //'
+            } | sort -u | grep -v '__' )
+  ok "every model alias (shell + roster tables) is declared in staffing-heuristics.md"
+
+  # 7l. An alias the CLI rejects must never be presented as usable. `gpt-5-codex` 400s on a
+  # ChatGPT-account Codex; it may appear ONLY on a line documenting that failure.
+  if grep -rn 'gpt-5-codex' "$SKILL_DIR" docs README.md 2>/dev/null \
+       | grep -vi 'not supported\|rejected' | grep -q .; then
+    grep -rn 'gpt-5-codex' "$SKILL_DIR" docs README.md 2>/dev/null | grep -vi 'not supported\|rejected'
+    err "'gpt-5-codex' presented as a usable alias (it 400s on a ChatGPT-account Codex)"
+  else ok "no rejected alias presented as usable"; fi
 
   ok "kit templates checked"
 else err "missing $KIT"; fi

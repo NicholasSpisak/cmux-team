@@ -8,7 +8,7 @@
 |---|---|---|---|---|
 | Lead | `claude-opus-4-8` | high | 1 | Decompose, judge on rubric, synthesize, verify |
 | Implementer A | `claude-opus-4-8` | high | 1 | Build in worktree ../ord-a; blind to B |
-| Implementer B | `codex · gpt-5-codex` | high | 1 | Build in worktree ../ord-b; diverse 2nd approach |
+| Implementer B | `codex · gpt-5.5` | high | 1 | Build in worktree ../ord-b; diverse 2nd approach |
 | Reviewer | `claude-sonnet-5` | medium | 1 | Edge-case tests; verify the synthesis |
 
 **Deliverable (launch kit):** `/cmux-team` writes `.cmux-team/rate-limit-orders/`:
