@@ -11,26 +11,31 @@
 | Implementer B | `codex · gpt-5-codex` | high | 1 | Build in worktree ../ord-b; diverse 2nd approach |
 | Reviewer | `claude-sonnet-5` | medium | 1 | Edge-case tests; verify the synthesis |
 
-**Deliverable (launch prompt):**
+**Deliverable (launch kit):** `/cmux-team` writes `.cmux-team/rate-limit-orders/`:
 
 ```
-/cmux "OBJECTIVE: Add rate limiting to POST /orders.
-
-ROSTER (4):
-• LEAD — claude-opus-4-8 · thinking=high. Decompose, delegate, judge builds on
-  the rubric, synthesize best-of-both, verify.
-• IMPLEMENTER-A — claude-opus-4-8 · thinking=high. Worktree ../ord-a, branch
-  ord/a. Blind to B.
-• IMPLEMENTER-B — codex gpt-5-codex · reasoning=high. Worktree ../ord-b, branch
-  ord/b. Blind to A.
-• REVIEWER — claude-sonnet-5 · thinking=medium. Edge-case tests (burst, clock
-  skew, distributed); verify the synthesis.
-
-PROTOCOL: A,B build isolated → LEAD scores blind to provenance → synthesize →
-  REVIEWER verifies → tests pass → present to human.
-RUBRIC: correctness · edge cases · readability · coverage · blast radius · idiomatic fit.
-CONSTRAINTS: worktree per implementer; --focus false; no merge without human approval."
+.cmux-team/rate-limit-orders/
+├─ launch.sh            # the one-line launcher (below)
+├─ lead.md             # lead: spawn recipe + protocol + rubric + observability
+├─ worker-implementer-a.md
+├─ worker-implementer-b.md
+├─ worker-reviewer.md
+└─ roster.md
 ```
 
-cmux-team stops here. Nothing is running — review the plan, tweak the roster,
-then run the prompt yourself.
+**Launcher (printed to chat, also saved as launch.sh):**
+
+```bash
+cmux new-workspace --name "team:rate-limit-orders" --cwd "$(pwd)" \
+  --command 'claude --dangerously-skip-permissions --model opus[1m] \
+    --append-system-prompt-file .cmux-team/rate-limit-orders/lead.md \
+    "Bootstrap your team now, per your system prompt."'
+```
+
+Running it opens cmux, boots the LEAD, and the LEAD spawns implementer-a,
+implementer-b, and reviewer into their own named panes (`--focus false`), each
+booted with `cmux send "claude --model … --append-system-prompt-file worker-<role>.md"`.
+Statuses (`set-status`/`set-progress`) and `notify` events surface progress live.
+
+cmux-team stops here. Nothing runs until you run the launcher — review the kit,
+tweak the roster, then launch it yourself.
