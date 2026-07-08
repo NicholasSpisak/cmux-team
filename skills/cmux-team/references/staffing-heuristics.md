@@ -15,6 +15,20 @@ read by `cmux-team` Move 3. Update model IDs here when they change; nowhere else
 
 **Totals:** 3–6 agents for most real tasks; **1** for trivial ones.
 
+## Launcher/runtime model aliases
+
+The generated `launch.sh` and the lead's spawn commands pass models to the
+`claude`/`codex` CLIs via their `--model` flag, which uses **runtime aliases**, not
+the canonical IDs in the table above. Keep these here so this file stays the single
+source of truth for every model string the skill emits:
+
+| Role | Canonical ID (table) | Launcher `--model` alias |
+|---|---|---|
+| Lead / primary implementer (Opus) | `claude-opus-4-8` | `opus[1m]` (Opus 4.8 + 1M context = `claude-opus-4-8[1m]`) |
+| Diverse implementer (Codex) | `codex · gpt-5-codex` | `gpt-5-codex` |
+| Reviewer (Sonnet) | `claude-sonnet-5` | `sonnet` |
+| Scaffolder (Haiku) | `claude-haiku-4-5` | `haiku` |
+
 ## Thinking-level guidance
 
 - `xhigh`/`high` — architecture, judging, synthesis, ambiguous design decisions.
