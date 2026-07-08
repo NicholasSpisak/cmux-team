@@ -18,19 +18,21 @@ else err "$SKILL_DIR/SKILL.md missing or has no YAML frontmatter"; fi
 
 # 2. No placeholders
 if grep -RInE 'TODO|TBD|FIXME|lorem ipsum|\bXXX\b|implement later' \
-     "$SKILL_DIR/SKILL.md" README.md "$SKILL_DIR/references" docs/index.html 2>/dev/null; then
+     "$SKILL_DIR/SKILL.md" README.md "$SKILL_DIR/references" "$SKILL_DIR/assets" docs/index.html 2>/dev/null; then
   err "placeholder tokens found (see above)"
 else ok "no placeholders"; fi
 
 # 3. Referenced files exist
 for f in "$SKILL_DIR/references/staffing-heuristics.md" "$SKILL_DIR/references/cmux-verbs.snapshot.md" \
-         "$SKILL_DIR/references/cmux-docs.snapshot.md" "$SKILL_DIR/assets/example-plan.md"; do
+         "$SKILL_DIR/references/cmux-docs.snapshot.md" "$SKILL_DIR/references/orchestration-recipe.md" \
+         "$SKILL_DIR/assets/example-plan.md"; do
   [ -f "$f" ] && ok "exists: $f" || err "missing referenced file: $f"
 done
 
 # 4. Snapshot provenance + staleness
 CUR_VER="$(cmux version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)"
-for s in "$SKILL_DIR/references/cmux-verbs.snapshot.md" "$SKILL_DIR/references/cmux-docs.snapshot.md"; do
+for s in "$SKILL_DIR/references/cmux-verbs.snapshot.md" "$SKILL_DIR/references/cmux-docs.snapshot.md" \
+         "$SKILL_DIR/references/orchestration-recipe.md"; do
   [ -f "$s" ] || continue
   grep -q 'Captured-From:' "$s" || err "$s: missing Captured-From provenance"
   grep -q 'Captured-cmux-version:' "$s" || err "$s: missing Captured-cmux-version provenance"
@@ -61,6 +63,23 @@ else err "missing docs/index.html"; fi
 
 # 6. No GitHub Actions
 if [ -d .github/workflows ]; then err ".github/workflows present (local CI only)"; else ok "no .github/workflows"; fi
+
+# 7. Launch-kit templates
+KIT="$SKILL_DIR/assets/kit-templates"
+ALLOWED_TOKENS='__SLUG__ __OBJECTIVE__ __LEAD_MODEL__ __LEAD_THINKING__ __ROLE__ __MODEL__ __THINKING__ __BRANCH__ __WORKTREE__ __TASK__ __ROSTER_TABLE__ __SPAWN_STEPS__ __WORKER_LIST__ __PATTERN__ __COUNT__'
+if [ -d "$KIT" ]; then
+  for tmpl in "$KIT/lead.md" "$KIT/worker.md" "$KIT/launch.sh" "$KIT/roster.md"; do
+    if [ ! -f "$tmpl" ]; then err "missing kit template: $tmpl"; continue; fi
+    while IFS= read -r tok; do
+      case " $ALLOWED_TOKENS " in
+        *" $tok "*) : ;;
+        *) err "$tmpl: unknown template token $tok (not in ALLOWED_TOKENS)";;
+      esac
+    done < <(grep -oE '__[A-Z_]+__' "$tmpl" | sort -u)
+  done
+  if bash -n "$KIT/launch.sh" 2>/dev/null; then ok "kit launch.sh parses"; else err "kit launch.sh: bash -n failed"; fi
+  ok "kit templates checked"
+else err "missing $KIT"; fi
 
 if [ "$fail" -ne 0 ]; then printf '\ncheck.sh: FAILURES\n'; exit 1; fi
 printf '\ncheck.sh: all checks passed\n'
