@@ -40,14 +40,35 @@ Assign each role a model, a thinking level, and a headcount using the table in
 tokens. Totals usually land at 3–6, or 1 when trivial.
 
 ## Move 4 · Generate the launch kit
+
+**The topology you are generating** (see `references/orchestration-recipe.md` §0):
+
+```
+window                        ← one OS window, shared with the human
+├── workspace "Human"         ← the human's global workspace. NEVER touch it.
+└── workspace "team:<slug>"   ← the lead's own workspace, created by launch.sh
+    ├── pane (lead)
+    ├── pane "<role>" → surface   ← one pane per worker; its surface is a tab
+    └── pane "<role>" → surface
+```
+
 Create `.cmux-team/<slug>/` (slug = dash-case of the objective) by substituting
 the roster into the templates in `assets/kit-templates/`:
-- **`launch.sh`** — the one-line `cmux new-workspace --command 'claude … --append-system-prompt-file .cmux-team/<slug>/lead.md …'` launcher. `__LEAD_MODEL__` = the lead's model from `references/staffing-heuristics.md` (use `opus[1m]` for the opus lead).
-- **`lead.md`** — the lead system prompt: fill `__SPAWN_STEPS__` with one spawn block per worker (from `references/orchestration-recipe.md` §1), `__ROSTER_TABLE__`, and the pattern/count. It already embeds the handshake protocol, observability wiring, and rubric.
+- **`launch.sh`** — creates the `team:<slug>` workspace in the current window and boots the lead into it. `__LEAD_MODEL__` = the lead's model from `references/staffing-heuristics.md` (use `opus[1m]` for the opus lead).
+- **`lead.md`** — the lead system prompt: fill `__SPAWN_STEPS__` with one spawn block per worker (from `references/orchestration-recipe.md` §3), `__ROSTER_TABLE__`, and the pattern/count. It already embeds the `cref()` preamble, handshake protocol, observability wiring, and rubric.
 - **`worker-<role>.md`** — one per teammate from `worker.md`, with `__TASK__`, `__MODEL__`, `__THINKING__`, and the worktree/branch for implementers.
 - **`roster.md`** — the human-readable roster + launch instructions.
 
-Substitute EVERY `__TOKEN__`. Use only cmux verbs present in
+**Three rules the generated shell must obey.** Each has a `scripts/check.sh` gate and a
+`scripts/smoke.sh` regression test; all three shipped broken once.
+1. **Quote every model alias** — `--model "opus[1m]"`. Bare, zsh globs `[1m]` and the pane dies with `no matches found: opus[1m]`. bash passes it through, so this is invisible on bash and fatal on macOS.
+2. **Parse cmux refs; never `$(...)`-capture them as handles.** Verbs print different shapes (`OK workspace:8` / `OK surface:18 workspace:8` / `OK surface:17 pane:17 workspace:8`). Use the recipe's `cref()`. Otherwise: `Error: Invalid surface handle: OK surface:17 pane:17 workspace:8`.
+3. **`rename-tab` is workspace-scoped** — pass `--workspace "$WS"`. `send`/`read-screen` resolve `surface:N` globally; `rename-tab` does not, and fails with `not_found: Tab not found`.
+
+Also: worker prompt paths must be **absolute** (`$KIT/worker-<role>.md`). Workers `cd`
+into fresh git worktrees, which do not contain the untracked `.cmux-team/` kit.
+
+Substitute EVERY `__TOKEN__`. Use only cmux verbs present in the verb table at the end of
 `references/orchestration-recipe.md` / the live CLI. Tell the operator to add
 `.cmux-team/` to their repo's ignore rules; do not edit their `.gitignore` yourself.
 

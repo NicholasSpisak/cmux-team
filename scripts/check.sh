@@ -107,8 +107,86 @@ if [ -d "$KIT" ]; then
     done < <(grep -oE '__[A-Z_]+__' "$tmpl" | sort -u)
   done
   if bash -n "$KIT/launch.sh" 2>/dev/null; then ok "kit launch.sh parses"; else err "kit launch.sh: bash -n failed"; fi
+
+  # 7b. Emitted shell must QUOTE every model alias. Bracketed aliases (opus[1m]) are
+  # globbed by zsh when bare: "zsh: no matches found: opus[1m]". bash passes them
+  # through, so this bug is invisible on bash and fatal on the common macOS default.
+  # An alias starts with a word char; `--model …` in prose is not a command.
+  if grep -RInE -- '--model [A-Za-z0-9_]' "$KIT" "$SKILL_DIR/assets/example-plan.md" 2>/dev/null | grep -q .; then
+    grep -RInE -- '--model [A-Za-z0-9_]' "$KIT" "$SKILL_DIR/assets/example-plan.md" 2>/dev/null
+    err "unquoted --model alias in emitted shell (must be --model \"<alias>\")"
+  else ok "all emitted --model aliases are quoted"; fi
+
+  # 7c. A $(...) capture of a cmux new-* verb is fine ONLY if it is then parsed. Each
+  # verb prints a different OK line ("OK surface:18 workspace:8" vs "OK surface:17
+  # pane:17 workspace:8"), so the raw string is never a valid handle. Require a
+  # cref()/grep -oE within 4 lines of the capture.
+  unparsed=0
+  while IFS= read -r f; do
+    awk -v file="$f" '
+      /^[[:space:]]*[A-Za-z_]+=\$\(cmux[[:space:]]+(new-pane|new-split|new-workspace|new-surface)/ {
+        cap = NR; capline = $0
+      }
+      cap && NR > cap && NR <= cap + 10 && (/cref/ || /grep -oE/) { cap = 0 }
+      cap && NR == cap + 10 { printf "%s:%d: %s\n", file, cap, capline; cap = 0 }
+      END { if (cap) printf "%s:%d: %s\n", file, cap, capline }
+    ' "$f"
+  done < <(find "$KIT" -type f) | grep . && unparsed=1
+  if [ "$unparsed" -eq 1 ]; then
+    err "cmux new-* captured but never parsed — extract the ref with cref()"
+  else ok "every cmux ref capture is parsed, never used raw"; fi
+
+  # 7d. rename-tab resolves the tab inside \$CMUX_WORKSPACE_ID; it needs --workspace.
+  if grep -RIn 'cmux rename-tab' "$KIT" "$SKILL_DIR/references/orchestration-recipe.md" 2>/dev/null \
+       | grep -v -- '--workspace' | grep -v 'not_found' | grep -v '^\s*#' | grep -q .; then
+    err "cmux rename-tab without --workspace (resolves inside \$CMUX_WORKSPACE_ID)"
+  else ok "every rename-tab is workspace-scoped"; fi
+
+  # 7e. Layout: exactly ONE workers pane. One `new-pane` per worker tiles into confetti;
+  # workers must be TABS (`new-surface --pane`) inside a single pane.
+  np=$(grep 'cmux new-pane' "$KIT/lead.md" 2>/dev/null | grep -vcE '^[[:space:]]*#' || echo 0)
+  if [ "$np" -gt 1 ]; then
+    err "lead.md calls new-pane $np times — workers must be tabs (new-surface --pane) in ONE pane"
+  else ok "lead.md creates exactly one workers pane"; fi
+
+  # 7f. Rule 4: a worker must never type into the lead's surface (keystrokes interleave).
+  # It reports via the journal + `cmux wait-for -S`.
+  if grep -qE 'cmux send .*(LEAD_SURF|lead.s surface)' "$KIT/worker.md" 2>/dev/null; then
+    err "worker.md sends into the lead's surface — concurrent workers corrupt keystrokes"
+  elif ! grep -q 'cmux wait-for -S' "$KIT/worker.md" 2>/dev/null; then
+    err "worker.md has no 'cmux wait-for -S' signal — the lead would never be woken"
+  else ok "workers report via journal + wait-for, never by typing at the lead"; fi
+
+  # 7g. `cmux wait-for` defaults to a 30s timeout; a lead that omits --timeout will
+  # give up on any real task.
+  if grep -E 'cmux wait-for "' "$KIT/lead.md" 2>/dev/null | grep -qv -- '--timeout'; then
+    err "lead.md waits without --timeout (cmux wait-for defaults to 30s)"
+  else ok "every lead wait-for passes --timeout"; fi
+
+  # 7h. Rule 5: the lead's Bash calls are fresh shells. Refs must be persisted+re-sourced,
+  # and the bootstrap must not use `eval "$(… python3 …)"` (nested quotes get eaten).
+  if grep -q 'eval "\$(' "$KIT/lead.md" 2>/dev/null; then
+    err "lead.md uses eval \"\$(...)\" — nested quoting is eaten in transit; parse with sed/grep"
+  elif ! grep -q 'savref' "$KIT/lead.md" 2>/dev/null || ! grep -q 'lib.sh' "$KIT/lead.md" 2>/dev/null; then
+    err "lead.md does not persist refs via lib.sh/savref — shell vars die between Bash calls (Rule 5)"
+  else ok "lead.md persists refs across fresh shells (no eval/python)"; fi
+
+  # 7i. The lead must be told not to rewrite the human's plan.
+  if grep -qi 'do not rewrite your own orders\|not rewrite its own orders' "$KIT/lead.md" 2>/dev/null; then
+    ok "lead.md forbids self-editing the kit"
+  else err "lead.md must forbid editing roster.md/worker-*.md (it will otherwise 'fix' the plan)"; fi
+
   ok "kit templates checked"
 else err "missing $KIT"; fi
+
+# 8. Live orchestration smoke test (skips cleanly when not a trusted cmux caller).
+if [ "${SKIP_SMOKE:-0}" = "1" ]; then
+  ok "smoke test skipped (SKIP_SMOKE=1)"
+elif bash scripts/smoke.sh; then
+  ok "live cmux orchestration smoke test"
+else
+  err "scripts/smoke.sh failed — the recipe does not work against this cmux"
+fi
 
 if [ "$fail" -ne 0 ]; then printf '\ncheck.sh: FAILURES\n'; exit 1; fi
 printf '\ncheck.sh: all checks passed\n'

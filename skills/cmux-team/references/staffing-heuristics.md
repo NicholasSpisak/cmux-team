@@ -29,6 +29,14 @@ source of truth for every model string the skill emits:
 | Reviewer (Sonnet) | `claude-sonnet-5` | `sonnet` |
 | Scaffolder (Haiku) | `claude-haiku-4-5` | `haiku` |
 
+**Always quote the alias in emitted shell:** write `--model "opus[1m]"`, never bare
+`--model opus[1m]`. Both `launch.sh --command '…'` and `cmux send --surface … '…'` hand
+their string to an *interactive shell* to re-parse. zsh (the common default on macOS)
+treats `[1m]` as a glob character class and aborts the line with
+`zsh: no matches found: opus[1m]`. bash silently passes it through, so this bug is
+invisible on bash and fatal on zsh. Aliases without brackets (`sonnet`, `haiku`,
+`gpt-5-codex`) are unaffected — quote them anyway for uniformity.
+
 ## Thinking-level guidance
 
 - `xhigh`/`high` — architecture, judging, synthesis, ambiguous design decisions.

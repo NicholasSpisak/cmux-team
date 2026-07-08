@@ -26,16 +26,20 @@
 **Launcher (printed to chat, also saved as launch.sh):**
 
 ```bash
-cmux new-workspace --name "team:rate-limit-orders" --cwd "$(pwd)" \
-  --command 'claude --dangerously-skip-permissions --model opus[1m] \
-    --append-system-prompt-file .cmux-team/rate-limit-orders/lead.md \
-    "Bootstrap your team now, per your system prompt."'
+bash .cmux-team/rate-limit-orders/launch.sh
+# → creates workspace "team:rate-limit-orders" in the current window and boots the LEAD:
+#   cmux new-workspace --name "team:rate-limit-orders" --cwd "$REPO_ROOT" --focus true \
+#     --command 'claude --dangerously-skip-permissions --model "opus[1m]" \
+#       --append-system-prompt-file '\''<abs>/lead.md'\'' "Bootstrap your team now, per your system prompt."'
 ```
 
-Running it opens cmux, boots the LEAD, and the LEAD spawns implementer-a,
-implementer-b, and reviewer into their own named panes (`--focus false`), each
-booted with `cmux send "claude --dangerously-skip-permissions --model … --append-system-prompt-file worker-<role>.md"`.
-Statuses (`set-status`/`set-progress`) and `notify` events surface progress live.
+The human keeps their own workspace in the same window; the team gets its own. The LEAD
+spawns implementer-a, implementer-b, and reviewer into their own **panes** inside the
+team workspace (`cmux new-pane --focus false`), names each pane's surface by role
+(`cmux rename-tab --workspace "$WS" --surface "$SURF" <role>`), and boots each with
+`cmux send` + `cmux send-key enter`. The model alias stays quoted and the worker prompt
+path is absolute. `cmux tree --workspace "$WS"` shows the whole team; statuses
+(`set-status`/`set-progress`, scoped to `"$WS"`) and `notify` surface progress live.
 
 cmux-team then asks: **"Launch this team?"** Nothing runs until you say yes. On your
 go-ahead it runs the launcher for you (after a `cmux ping` preflight) — you never type
