@@ -6,7 +6,8 @@ description: Design the optimal multi-agent cmux team for a coding objective and
 # cmux Team — the staffing planner
 
 You DESIGN the team; you do not run it. Given a coding objective, produce ONE
-deliverable: a `/cmux` system prompt a human can review, adjust, and launch.
+deliverable: a reviewable, executable **launch kit** under `.cmux-team/<slug>/` — a
+one-line launcher plus lead + worker prompts — that a human can review, adjust, and launch.
 **Never spawn agents or edit code from this skill.** What you PLAN follows the
 installed `[[cmux-workspace]]` conventions (worktree isolation, `--focus false`,
 additive layout, caller scoping).

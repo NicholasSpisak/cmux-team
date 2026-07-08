@@ -28,10 +28,12 @@ NEW=$(cmux new-split down --focus false)          # capture the new surface ref
 cmux rename-tab --surface "$NEW" "__ROLE__"       # name the pane by role
 
 # Boot the agent into that surface (send-boot = full control of model+prompt):
-cmux send --surface "$NEW" 'claude --model __MODEL__ --append-system-prompt-file .cmux-team/__SLUG__/worker-__ROLE__.md'
+cmux send --surface "$NEW" 'claude --dangerously-skip-permissions --model __MODEL__ --append-system-prompt-file .cmux-team/__SLUG__/worker-__ROLE__.md'
 cmux send-key --surface "$NEW" enter
-# Codex worker variant:
-#   cmux send --surface "$NEW" 'codex --model gpt-5-codex --append-system-prompt-file .cmux-team/__SLUG__/worker-__ROLE__.md'
+# Codex worker variant — unlike claude, codex has no system-prompt-file flag; it takes
+# the role prompt as its positional argument, plus --dangerously-bypass-approvals-and-sandbox
+# to run autonomously (the codex equivalent of claude's --dangerously-skip-permissions):
+#   cmux send --surface "$NEW" 'codex --model gpt-5-codex --dangerously-bypass-approvals-and-sandbox "$(cat .cmux-team/__SLUG__/worker-__ROLE__.md)"'
 #   cmux send-key --surface "$NEW" enter
 ```
 

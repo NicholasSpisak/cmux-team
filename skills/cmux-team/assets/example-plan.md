@@ -34,7 +34,7 @@ cmux new-workspace --name "team:rate-limit-orders" --cwd "$(pwd)" \
 
 Running it opens cmux, boots the LEAD, and the LEAD spawns implementer-a,
 implementer-b, and reviewer into their own named panes (`--focus false`), each
-booted with `cmux send "claude --model … --append-system-prompt-file worker-<role>.md"`.
+booted with `cmux send "claude --dangerously-skip-permissions --model … --append-system-prompt-file worker-<role>.md"`.
 Statuses (`set-status`/`set-progress`) and `notify` events surface progress live.
 
 cmux-team stops here. Nothing runs until you run the launcher — review the kit,
